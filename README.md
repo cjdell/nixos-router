@@ -33,7 +33,7 @@ nixos-install --impure --root /mnt --flake .#NixOS-Router
 ```bash
 sudo nixos-rebuild switch --flake .#NixOS-Router --impure
 
-nixos-confirm # Don't rollback if the current generation is good
+sudo nixos-confirm # Don't rollback if the current generation is good
 ```
 
 ## Auto Rollbacks
@@ -42,7 +42,7 @@ Every time a new generation is deployed a timer starts that will automatically r
 
 This is to prevent you messing up a firewall rule that will lock you out accidentally.
 
-To make this generation the last known good configuration, use `nixos-confirm`. See `./rollback.nix` for more information.
+To make this generation the last known good configuration, use `sudo nixos-confirm`. See `./rollback.nix` for more information.
 
 ## Useful tools
 
