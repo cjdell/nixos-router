@@ -6,13 +6,13 @@ Secrets missing and should be placed in `secrets` folder. Impure build required,
 
 ## Services
 
-Router / Firewall using `nftables`
-Interface configuration with `networkd`
-PPPoE for UK ISP (Zen Internet)
-Home Assistant
-Zigbee2MQTT
-Frigate NVR
-A few other miscellaneous things specific to my setup...
+- Router / Firewall using `nftables`
+- Interface configuration with `networkd`
+- PPPoE for UK ISP (Zen Internet)
+- Home Assistant
+- Zigbee2MQTT
+- Frigate NVR
+- A few other miscellaneous things specific to my setup...
 
 ## Applying
 
