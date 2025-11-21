@@ -10,6 +10,8 @@
     "flakes"
   ];
 
+  system.autoRollback.enable = true;
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -84,6 +86,7 @@
     parallel
     deno
     jq
+    graphviz
   ];
 
   # List services that you want to enable:

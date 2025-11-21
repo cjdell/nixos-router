@@ -14,13 +14,37 @@ Secrets missing and should be placed in `secrets` folder. Impure build required,
 - Frigate NVR
 - A few other miscellaneous things specific to my setup...
 
+## Installing
+
+Make sure `/mnt` and `/mnt/boot` are mounted and the correct device IDs are in `hardware-configuration.nix`.
+
+Comment out any services you don't need in `./services/default.nix`.
+
+Tweak your interface names and address in `./networking/interface.nix`.
+
+Install with:
+
+```bash
+nixos-install --impure --root /mnt --flake .#NixOS-Router
+```
+
 ## Applying
 
 ```bash
-sudo nixos-rebuild boot --flake .#NixOS-Router --impure
+sudo nixos-rebuild switch --flake .#NixOS-Router --impure
+
+nixos-confirm # Don't rollback if the current generation is good
 ```
 
-### Useful tools
+## Auto Rollbacks
+
+Every time a new generation is deployed a timer starts that will automatically rollback to the last know good configuration in 5 minutes.
+
+This is to prevent you messing up a firewall rule that will lock you out accidentally.
+
+To make this generation the last known good configuration, use `nixos-confirm`. See `./rollback.nix` for more information.
+
+## Useful tools
 
 ```bash
 $ sudo list-container-ips 

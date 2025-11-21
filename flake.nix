@@ -1,14 +1,12 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
   outputs =
     {
       self,
       nixpkgs,
-      nixos-hardware,
     }@attrs:
     {
       nixosConfigurations.NixOS-Router =
@@ -28,6 +26,7 @@
             ./configuration.nix
             ./hardware-configuration.nix
             ./http.nix
+            ./rollback.nix
 
             ./networking
             ./services

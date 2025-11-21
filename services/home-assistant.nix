@@ -51,6 +51,8 @@ in
     let
       homeassistant-frigate = (
         pkgs.writeShellScriptBin "homeassistant-frigate" ''
+          ${pkgs.coreutils-full}/bin/sleep 10
+
           ${pkgs.wget}/bin/wget -O frigate-ha.zip https://codeload.github.com/blakeblackshear/frigate-hass-integration/zip/refs/heads/master
           ${pkgs.unzip}/bin/unzip frigate-ha.zip
           rm frigate-ha.zip
@@ -70,9 +72,11 @@ in
 
         wantedBy = [ "podman-homeassistant.service" ];
         before = [ "podman-homeassistant.service" ];
+        requiredBy = [ "podman-homeassistant.service" ];
 
         serviceConfig = {
           Type = "oneshot";
+          RemainAfterExit = true;
           ExecStart = "${homeassistant-frigate}/bin/homeassistant-frigate";
         };
       };
