@@ -62,7 +62,7 @@
         # MSS Clamping
         tcp flags syn / fin,syn,rst,ack ip6 daddr != fe80::/10 tcp option maxseg size set 1400 comment "Clamp TCP MSS for IPv6"
 
-        # MSS Clamping for WireGuard (commented because it didn't work)
+        # MSS Clamping for WireGuard
         oifname "wg0" tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1360
         iifname "wg0" tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1360
 

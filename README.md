@@ -12,15 +12,18 @@ Secrets missing and should be placed in `secrets` folder. Impure build required,
 - Home Assistant
 - Zigbee2MQTT
 - Frigate NVR
+- AdGuard
 - A few other miscellaneous things specific to my setup...
 
 ## Installing
+
+Boot the NixOS live environment.
 
 Make sure `/mnt` and `/mnt/boot` are mounted and the correct device IDs are in `hardware-configuration.nix`.
 
 Comment out any services you don't need in `./services/default.nix`.
 
-Tweak your interface names and address in `./networking/interface.nix`.
+Tweak your interface names and addresses in `./networking/interface.nix`.
 
 Install with:
 
@@ -28,12 +31,12 @@ Install with:
 nixos-install --impure --root /mnt --flake .#NixOS-Router
 ```
 
-## Applying
+## Applying Changes
 
 ```bash
 sudo nixos-rebuild switch --flake .#NixOS-Router --impure
 
-sudo nixos-confirm # Don't rollback if the current generation is good
+sudo nixos-confirm  # Mark this generation as good as we don't get rollbacked
 ```
 
 ## Auto Rollbacks
@@ -44,7 +47,7 @@ This is to prevent you messing up a firewall rule that will lock you out acciden
 
 To make this generation the last known good configuration, use `sudo nixos-confirm`. See `./rollback.nix` for more information.
 
-## Useful tools
+## Useful Tools
 
 ```bash
 $ sudo list-container-ips 

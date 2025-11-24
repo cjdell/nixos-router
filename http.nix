@@ -14,16 +14,18 @@ let
     AWS_ACCESS_KEY_ID=AKIAW5QXYEAMOAWTXW4P
     AWS_SECRET_ACCESS_KEY=${CONFIG.AWS_ACCESS_KEY_SECRET_FILE}
   '';
+
+  route53DynamicDnsService = import ./utils/r53-ddns.nix { inherit pkgs route53Creds; };
   route53Creds = "${pkgs.writeText "route53-creds" ROUTE_53_CREDS}";
-  r53DDNS = import ./utils/r53-ddns.nix { inherit pkgs route53Creds; };
+  route53ZoneConfig = {
+    hostname = "home";
+    domain = "chrisdell.info";
+    zone = "Z02538421F5QYV4YUE5Q";
+  };
 in
 {
   imports = [
-    (r53DDNS {
-      hostname = "home";
-      domain = "chrisdell.info";
-      zone = "Z02538421F5QYV4YUE5Q";
-    })
+    (route53DynamicDnsService route53ZoneConfig)
   ];
 
   # Use DNS based challenge to acquire SSL certificates. Works even if NGINX is down.
