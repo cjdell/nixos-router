@@ -7,18 +7,6 @@
 }:
 
 let
-  update-containers = (
-    pkgs.writeShellScriptBin "update-containers" ''
-      images=$(${pkgs.podman}/bin/podman ps -a --format="{{.Image}}" | sort -u)
-
-      for image in $images; do
-        ${pkgs.podman}/bin/podman pull $image
-      done
-
-      ${pkgs.systemd}/bin/systemctl restart podman-*
-    ''
-  );
-
   list-container-ips = (
     pkgs.writeShellScriptBin "list-container-ips" ''
       for container_id in $(${pkgs.podman}/bin/podman ps -q); do
@@ -31,6 +19,8 @@ let
   );
 in
 {
+  system.updateContainers.enable = true;
+
   virtualisation.podman = {
     enable = true;
     autoPrune.enable = true;
@@ -44,26 +34,7 @@ in
 
   virtualisation.oci-containers.backend = "podman";
 
-  systemd.timers = {
-    update-containers = {
-      timerConfig = {
-        Unit = "update-containers.service";
-        OnCalendar = "Mon 02:00";
-      };
-      wantedBy = [ "timers.target" ];
-    };
-  };
-  systemd.services = {
-    update-containers = {
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${update-containers}/bin/update-containers";
-      };
-    };
-  };
-
   environment.systemPackages = [
-    update-containers
     list-container-ips
   ];
 }

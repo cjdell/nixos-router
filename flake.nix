@@ -1,12 +1,18 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+
+    nixos-utils = {
+      url = "github:cjdell/nixos-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
       nixpkgs,
+      nixos-utils,
     }@attrs:
     {
       nixosConfigurations.NixOS-Router =
@@ -22,11 +28,13 @@
             };
           };
           modules = [
+            nixos-utils.modules.rollback
+            nixos-utils.modules.containers
+
             ./containers.nix
             ./configuration.nix
             ./hardware-configuration.nix
             ./http.nix
-            ./rollback.nix
 
             ./networking
             ./services
