@@ -67,6 +67,8 @@
     nmap
     inetutils
     nixfmt-rfc-style
+    nixd
+    nil
     wget
     tmux
     screen
@@ -87,6 +89,9 @@
     deno
     jq
     graphviz
+
+    conntrack-tools
+    tcpdump           # tcpdump -i vlan10 -n host 192.168.10.138 and port 22
   ];
 
   # List services that you want to enable:

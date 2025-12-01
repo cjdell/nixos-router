@@ -89,8 +89,10 @@
       "200-wan-fttp" = {
         # networkd should ignore the NIC connected to the fibre modem
         matchConfig.Name = "wan-fttp";
-        linkConfig.Unmanaged = "yes";
-        linkConfig.RequiredForOnline = "no";
+        linkConfig = {
+          Unmanaged = "yes";
+          RequiredForOnline = "no";
+        };
       };
     };
   };
