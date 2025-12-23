@@ -1,20 +1,16 @@
-{
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
-
 let
   FRIGATE_UID = 8971;
-  CONFIG = import ../config.nix;
+  mkSSOVirtualHost = import ../utils/nginx-sso-helper.nix;
 in
 {
   users.users.frigate = {
     uid = FRIGATE_UID;
     group = "users";
     isNormalUser = true;
+  };
+
+  boot.kernel.sysctl = {
+    "kernel.perf_event_paranoid" = 0;
   };
 
   # journalctl -u podman-frigate -f
@@ -59,19 +55,8 @@ in
   '';
 
   services.nginx.virtualHosts = {
-    "frigate.home.chrisdell.info" = {
-      useACMEHost = "chrisdell.info";
-      forceSSL = true;
-
-      basicAuth = {
-        admin = builtins.readFile CONFIG.HTTP_PASSWORD_FILE;
-      };
-
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8971";
-        recommendedProxySettings = true;
-        proxyWebsockets = true;
-      };
+    "frigate.home.chrisdell.info" = mkSSOVirtualHost {
+      proxyPass = "http://127.0.0.1:8971";
     };
   };
 }

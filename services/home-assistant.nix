@@ -46,39 +46,36 @@ in
     chmod -R g+rw /srv/homeassistant
   '';
 
-  # journalctl -u homeassistant-frigate-install -f
-  systemd.services =
+  # journalctl -u homeassistant-hacs-install -f
+  systemd.services.homeassistant-hacs-install =
     let
-      homeassistant-frigate = (
-        pkgs.writeShellScriptBin "homeassistant-frigate" ''
-          ${pkgs.coreutils-full}/bin/sleep 10
+      homeassistant-hacs = (
+        pkgs.writeShellScriptBin "homeassistant-hacs" ''
+          ${pkgs.coreutils-full}/bin/sleep 5
 
-          ${pkgs.wget}/bin/wget -O frigate-ha.zip https://codeload.github.com/blakeblackshear/frigate-hass-integration/zip/refs/heads/master
-          ${pkgs.unzip}/bin/unzip frigate-ha.zip
-          rm frigate-ha.zip
-          cp -rf frigate-hass-integration-master/custom_components/frigate /srv/homeassistant/config/custom_components/
-          rm -rf frigate-hass-integration-master
-
-          # Ensure correct permissions
-          chown -R ${toString HOME_ASSISTANT_UID}:users /srv/homeassistant
-          chmod -R g+rw /srv/homeassistant
+          ${pkgs.wget}/bin/wget -O /srv/homeassistant/hacs.zip https://github.com/hacs/integration/releases/latest/download/hacs.zip
+          rm -rf /srv/homeassistant/config/custom_components/hacs
+          mkdir -d /srv/homeassistant/config/custom_components/hacs
+          ${pkgs.unzip}/bin/unzip /srv/homeassistant/hacs.zip -d /srv/homeassistant/config/custom_components/hacs
+          rm /srv/homeassistant/hacs.zip
         ''
       );
     in
     {
-      homeassistant-frigate-install = {
-        wants = [ "network-online.target" ];
-        after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
 
-        wantedBy = [ "podman-homeassistant.service" ];
-        before = [ "podman-homeassistant.service" ];
-        requiredBy = [ "podman-homeassistant.service" ];
+      before = [ "podman-homeassistant.service" ];
+      wantedBy = [ "podman-homeassistant.service" ];
+      requiredBy = [ "podman-homeassistant.service" ];
 
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = "${homeassistant-frigate}/bin/homeassistant-frigate";
-        };
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${homeassistant-hacs}/bin/homeassistant-hacs";
+
+        User = "homeassistant";
+        Group = "users";
       };
     };
 
@@ -91,6 +88,18 @@ in
         proxyPass = "http://127.0.0.1:8123";
         recommendedProxySettings = true;
         proxyWebsockets = true;
+      };
+
+      # Authentik support
+      locations."/auth/authorize" = {
+        proxyPass = "http://127.0.0.1:8123";
+        recommendedProxySettings = true;
+        extraConfig = ''
+          sub_filter_once off;
+          sub_filter_types text/html;
+          sub_filter '<head>' '<head><script>setTimeout(function(){window.location.href="/auth/oidc/redirect";},1000);</script>';
+          proxy_set_header Accept-Encoding "";
+        '';
       };
     };
   };

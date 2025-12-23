@@ -2,12 +2,13 @@
   config,
   lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
 let
   CONFIG = import ./config.nix;
+
+  nginxSsoConfig = import ./utils/nginx-sso-config.nix;
 
   ROUTE_53_CREDS = ''
     AWS_REGION=us-east-1
@@ -52,17 +53,85 @@ in
     };
   };
 
+  # journalctl -u nginx-sso -f
+  systemd.services.nginx-sso = {
+    description = "NGINX SSO";
+
+    # Ensure the service is started at boot
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      ExecStart = "${pkgs.nginx-sso}/bin/nginx-sso --frontend-dir=${pkgs.nginx-sso}/share/frontend -c ${
+        pkgs.writeText "nginx-sso-config" (nginxSsoConfig {
+          inherit lib;
+        })
+      }";
+      Restart = "always";
+      RestartSec = 5;
+    };
+  };
+
   # NGINX is configured to use pre-existing certicates acquired by the ACME client
   services.nginx = {
     enable = true;
 
     virtualHosts = {
+      "nginx-sso.home.chrisdell.info" = {
+        useACMEHost = "chrisdell.info";
+        forceSSL = true;
+
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8082";
+          recommendedProxySettings = true;
+        };
+      };
+
       "files.home.chrisdell.info" = {
         useACMEHost = "chrisdell.info";
         forceSSL = true;
 
         locations."/" = {
           root = "/files";
+        };
+      };
+
+      # curl -X POST https://notify.home.chrisdell.info -H 'Content-Type: application/json' -d '{"message":"Hello World!","title":"Notification Test"}'
+      "notify.home.chrisdell.info" = {
+        useACMEHost = "chrisdell.info";
+        forceSSL = true;
+
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8123/api/services/notify/mobile_app_hd1913";
+          recommendedProxySettings = true;
+          extraConfig = ''
+            proxy_set_header Authorization "Bearer ${lib.strings.trim (builtins.readFile CONFIG.HOME_ASSISTANT_TOKEN_FILE)}";
+          '';
+        };
+      };
+
+      "grafana.home.chrisdell.info" = {
+        useACMEHost = "chrisdell.info";
+        forceSSL = true;
+
+        locations."/" = {
+          proxyPass = "http://192.168.49.22:3000";
+          recommendedProxySettings = true;
+          proxyWebsockets = true;
+        };
+      };
+
+      "filebrowser.home.chrisdell.info" = {
+        useACMEHost = "chrisdell.info";
+        forceSSL = true;
+
+        locations."/" = {
+          proxyPass = "http://192.168.49.22:8002";
+          recommendedProxySettings = true;
+          proxyWebsockets = true;
+
+          extraConfig = ''
+            client_max_body_size 100M;
+          '';
         };
       };
     };

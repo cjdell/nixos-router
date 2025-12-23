@@ -23,7 +23,22 @@
 
   boot.kernelParams = [
     "mitigations=off" # Moooorrrre speed...
+    # Force newer Xe driver
+    "i915.force_probe=!46d1"
+    "xe.force_probe=46d1"
   ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      vpl-gpu-rt
+      intel-compute-runtime
+      ocl-icd
+      intel-vaapi-driver
+      intel-media-driver
+    ];
+  };
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/9ee72b57-3b54-4e7b-98d5-ccd6fc392f38";

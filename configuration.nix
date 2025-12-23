@@ -63,12 +63,8 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     dmidecode
-    git
     nmap
     inetutils
-    nixfmt-rfc-style
-    nixd
-    nil
     wget
     tmux
     screen
@@ -86,12 +82,20 @@
     outils
     wol
     parallel
-    deno
     jq
     graphviz
 
+    # Development
+    nixfmt-rfc-style
+    alejandra
+    nixd
+    nil
+    deno
+    git
+
+    # Debug
     conntrack-tools
-    tcpdump           # tcpdump -i vlan10 -n host 192.168.10.138 and port 22
+    tcpdump # tcpdump -i vlan10 -n host 192.168.10.138 and port 22
   ];
 
   # List services that you want to enable:
@@ -105,5 +109,5 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; # Did you read the comment?
+  system.stateVersion = "25.11"; # Did you read the comment?
 }

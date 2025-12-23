@@ -10,6 +10,7 @@ in
     isNormalUser = true;
   };
 
+  # journalctl -u podman-zigbee2mqtt -f
   # sudo systemctl restart podman-zigbee2mqtt
   virtualisation.oci-containers.containers = {
     zigbee2mqtt = {
@@ -17,7 +18,7 @@ in
       image = "koenkk/zigbee2mqtt";
       autoStart = true;
       ports = [
-        "8080:8080"
+        "8124:8080"
       ];
       volumes = [
         "/srv/zigbee2mqtt:/app/data"

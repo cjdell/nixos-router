@@ -35,10 +35,10 @@ in
           # allowedIPs = [ "0.0.0.0/0" ];
           # Or forward only particular subnets
           allowedIPs = [
-            "10.47.0.0/16"
+            # "10.47.0.0/16"
             "192.168.35.0/24"
             "192.168.98.0/24"
-            "10.3.0.0/16"
+#            "10.3.0.0/16"
           ];
 
           # Set this to the server IP and port.
