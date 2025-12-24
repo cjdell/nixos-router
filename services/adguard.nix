@@ -1,13 +1,5 @@
-{
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
-
 let
-  CONFIG = import ../config.nix;
+  mkSSOVirtualHost = import ../utils/nginx-sso-helper.nix;
 in
 {
   services.adguardhome = {
@@ -62,19 +54,8 @@ in
   };
 
   services.nginx.virtualHosts = {
-    "adguard.home.chrisdell.info" = {
-      useACMEHost = "chrisdell.info";
-      forceSSL = true;
-
-      basicAuth = {
-        admin = builtins.readFile CONFIG.HTTP_PASSWORD_FILE;
-      };
-
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8153";
-        recommendedProxySettings = true;
-        proxyWebsockets = true;
-      };
+    "adguard.home.chrisdell.info" = mkSSOVirtualHost {
+      proxyPass = "http://127.0.0.1:8153";
     };
   };
 }

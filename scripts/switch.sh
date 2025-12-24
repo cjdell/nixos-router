@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sudo nixos-rebuild switch --flake . --impure
+sudo nixos-rebuild switch --flake .

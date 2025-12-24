@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sudo nixos-rebuild boot --flake . --impure
+sudo nixos-rebuild boot --flake .

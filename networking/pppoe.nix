@@ -2,13 +2,9 @@
   config,
   lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
-let
-  CONFIG = import ../config.nix;
-in
 {
   systemd.network.networks."21-pppoe-zen" = {
     matchConfig.Name = "pppoe-zen";
@@ -23,6 +19,11 @@ in
     };
   };
 
+  sops.templates."pppoe-credentials".content = ''
+    name "zen383475@zen"
+    password "${config.sops.placeholder.pppoe_password}"
+  '';
+
   services.pppd = {
     enable = true;
     peers = {
@@ -34,8 +35,8 @@ in
         # if your ISP doesn't offer baby-jumbo frames, set mtu to 1492
         config = ''
           plugin pppoe.so wan-fttp
-          name "zen383475@zen"
-          password "${builtins.readFile CONFIG.ZEN_PASSWORD_FILE}"
+
+          file ${config.sops.templates."pppoe-credentials".path}
 
           noauth
           noipdefault

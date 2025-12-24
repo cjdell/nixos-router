@@ -1,14 +1,9 @@
 {
   config,
-  lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
-let
-  CONFIG = import ../config.nix;
-in
 {
   networking.wireguard.interfaces = {
     # "wg0" is the network interface name. You can name the interface arbitrarily.
@@ -22,7 +17,7 @@ in
       # Note: The private key can also be included inline via the privateKey option,
       # but this makes the private key world-readable; thus, using privateKeyFile is
       # recommended.
-      privateKeyFile = CONFIG.WIREGUARD_KEY_FILE;
+      privateKeyFile = "${config.sops.secrets.wireguard_key.path}";
 
       peers = [
         # For a client configuration, one peer entry for the server will suffice.
@@ -38,7 +33,7 @@ in
             # "10.47.0.0/16"
             "192.168.35.0/24"
             "192.168.98.0/24"
-#            "10.3.0.0/16"
+            # "10.3.0.0/16"
           ];
 
           # Set this to the server IP and port.

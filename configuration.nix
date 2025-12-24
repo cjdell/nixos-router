@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   nix.settings.experimental-features = [
@@ -49,7 +49,6 @@
       "wheel"
       "dialout"
     ];
-    packages = with pkgs; [ ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJ63Sro9L4zmSuYKQ654cWwBMq0KFFWxWGflAJbFEFJ me@chrisdell.info"
     ];

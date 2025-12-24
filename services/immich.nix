@@ -1,5 +1,3 @@
-{ config, lib, pkgs, modulesPath, ... }:
-
 {
   services.nginx.virtualHosts = {
     "immich.home.chrisdell.info" = {

@@ -6,6 +6,11 @@
       url = "github:cjdell/nixos-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -13,6 +18,7 @@
       self,
       nixpkgs,
       nixos-utils,
+      sops-nix,
     }@attrs:
     {
       nixosConfigurations.NixOS-Router =
@@ -28,13 +34,16 @@
             };
           };
           modules = [
-            nixos-utils.modules.rollback
-            nixos-utils.modules.containers
+            nixos-utils.nixosModules.rollback
+            nixos-utils.nixosModules.containers
+            nixos-utils.nixosModules.notifications
+            sops-nix.nixosModules.sops
 
             ./containers.nix
             ./configuration.nix
             ./hardware-configuration.nix
             ./http.nix
+            ./sops.nix
 
             ./networking
             ./services

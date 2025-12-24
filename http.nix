@@ -4,20 +4,15 @@
   pkgs,
   ...
 }:
-
 let
-  CONFIG = import ./config.nix;
+  inherit (import ./utils/convert.nix { inherit lib; }) convertToEnvFile;
 
-  nginxSsoConfig = import ./utils/nginx-sso-config.nix;
-
-  ROUTE_53_CREDS = ''
-    AWS_REGION=us-east-1
-    AWS_ACCESS_KEY_ID=AKIAW5QXYEAMOAWTXW4P
-    AWS_SECRET_ACCESS_KEY=${CONFIG.AWS_ACCESS_KEY_SECRET_FILE}
-  '';
+  nginxSsoConfig = import ./utils/nginx-sso-config.nix { inherit config lib; };
 
   route53DynamicDnsService = import ./utils/r53-ddns.nix { inherit pkgs route53Creds; };
-  route53Creds = "${pkgs.writeText "route53-creds" ROUTE_53_CREDS}";
+
+  route53Creds = config.sops.templates."route-53-creds.env".path;
+
   route53ZoneConfig = {
     hostname = "home";
     domain = "chrisdell.info";
@@ -28,6 +23,12 @@ in
   imports = [
     (route53DynamicDnsService route53ZoneConfig)
   ];
+
+  sops.templates."route-53-creds.env".content = convertToEnvFile {
+    AWS_REGION = "us-east-1";
+    AWS_ACCESS_KEY_ID = "AKIAW5QXYEAMOAWTXW4P";
+    AWS_SECRET_ACCESS_KEY = "${config.sops.placeholder.aws_access_key_secret}";
+  };
 
   # Use DNS based challenge to acquire SSL certificates. Works even if NGINX is down.
   security.acme = {
@@ -61,14 +62,18 @@ in
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
-      ExecStart = "${pkgs.nginx-sso}/bin/nginx-sso --frontend-dir=${pkgs.nginx-sso}/share/frontend -c ${
-        pkgs.writeText "nginx-sso-config" (nginxSsoConfig {
-          inherit lib;
-        })
-      }";
+      ExecStart = "${pkgs.nginx-sso}/bin/nginx-sso --frontend-dir=${pkgs.nginx-sso}/share/frontend -c ${pkgs.writeText "nginx-sso-config" nginxSsoConfig}";
       Restart = "always";
       RestartSec = 5;
     };
+  };
+
+  notifications.gateway = {
+    enable = true;
+    port = 8888;
+    notifyUrl = "http://192.168.49.1:8123/api/services/notify/mobile_app_hd1913";
+    payloadFormat = "home_assistant";
+    headerFile = "${config.sops.secrets.home_assistant_header.path}";
   };
 
   # NGINX is configured to use pre-existing certicates acquired by the ACME client
@@ -101,11 +106,8 @@ in
         forceSSL = true;
 
         locations."/" = {
-          proxyPass = "http://127.0.0.1:8123/api/services/notify/mobile_app_hd1913";
+          proxyPass = "http://127.0.0.1:8888";
           recommendedProxySettings = true;
-          extraConfig = ''
-            proxy_set_header Authorization "Bearer ${lib.strings.trim (builtins.readFile CONFIG.HOME_ASSISTANT_TOKEN_FILE)}";
-          '';
         };
       };
 

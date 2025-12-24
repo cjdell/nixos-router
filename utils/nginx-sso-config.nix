@@ -1,9 +1,5 @@
-{ lib }:
-let
-  CONFIG = import ../config.nix;
+{ config, lib }:
 
-  readSecret = file: lib.strings.trim (builtins.readFile file);
-in
 lib.generators.toYAML { } {
   login = {
     title = "Kanidm - Login";
@@ -58,7 +54,7 @@ lib.generators.toYAML { } {
 
   providers.oidc = {
     client_id = "nginx-sso";
-    client_secret = "cjct0uTCbsG1pMQpzYeYVgjWMRCtj9yNaSfHCr41xRxwAZFt";
+    client_secret = "${config.sops.placeholder.nginx_sso_client_secret}";
     redirect_url = "https://nginx-sso.home.chrisdell.info/login";
     issuer_name = "chrisdell.info";
     issuer_url = "https://kanidm.home.chrisdell.info/oauth2/openid/nginx-sso";

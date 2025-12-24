@@ -1,8 +1,5 @@
 {
-  config,
-  lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
@@ -19,7 +16,10 @@ let
   );
 in
 {
-  system.updateContainers.enable = true;
+  system.updateContainers = {
+    enable = true;
+    webhookUrl = "http://localhost:8888";
+  };
 
   virtualisation.podman = {
     enable = true;

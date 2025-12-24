@@ -1,0 +1,14 @@
+# This example uses YAML anchors which allows reuse of multiple keys
+# without having to repeat yourself.
+# Also see https://github.com/Mic92/dotfiles/blob/d6114726d859df36ccaa32891c4963ae5717ef7f/nixos/.sops.yaml
+# for a more complex example.
+keys:
+  - &cjdell age1axfjvw2my0usdk082r5ny94rud5wa3whak6zesngkanuux894exqx2dv8g
+creation_rules:
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *cjdell
+
+# nix-shell -p ssh-to-age --run 'cat ~/.ssh/id_ed25519_ps.pub | ssh-to-age'
+# SSH_TO_AGE_PASSPHRASE="********" nix-shell -p ssh-to-age --run "ssh-to-age -private-key -i ~/.ssh/id_ed25519_ps > ~/age-key.txt"

@@ -1,12 +1,4 @@
 {
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
-
-{
   virtualisation.oci-containers.containers = {
     twofauth = {
       hostname = "twofauth";
@@ -16,7 +8,7 @@
         "/srv/2fauth:/2fauth"
       ];
       ports = [
-        "8888:8000/tcp"
+        "8900:8000/tcp"
       ];
       environment = {
         TZ = "Europe/London";
@@ -41,7 +33,7 @@
       forceSSL = true;
 
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8888";
+        proxyPass = "http://127.0.0.1:8900";
         recommendedProxySettings = true;
         proxyWebsockets = true;
       };
