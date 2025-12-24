@@ -30,6 +30,8 @@ in
     AWS_SECRET_ACCESS_KEY = "${config.sops.placeholder.aws_access_key_secret}";
   };
 
+  sops.templates."nginx-sso-config".content = nginxSsoConfig;
+
   # Use DNS based challenge to acquire SSL certificates. Works even if NGINX is down.
   security.acme = {
     acceptTerms = true;
@@ -62,7 +64,9 @@ in
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
-      ExecStart = "${pkgs.nginx-sso}/bin/nginx-sso --frontend-dir=${pkgs.nginx-sso}/share/frontend -c ${pkgs.writeText "nginx-sso-config" nginxSsoConfig}";
+      ExecStart = "${pkgs.nginx-sso}/bin/nginx-sso --frontend-dir=${pkgs.nginx-sso}/share/frontend -c ${
+        config.sops.templates."nginx-sso-config".path
+      }";
       Restart = "always";
       RestartSec = 5;
     };
