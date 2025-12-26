@@ -29,7 +29,7 @@
   };
 
   networking = {
-    hostName = "NixOS-Router"; # Define your hostname.
+    hostName = "router"; # Define your hostname.
 
     useDHCP = false;
     useNetworkd = true;

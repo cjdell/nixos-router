@@ -21,7 +21,7 @@
       sops-nix,
     }@attrs:
     {
-      nixosConfigurations.NixOS-Router =
+      nixosConfigurations.router =
         let
           system = "x86_64-linux";
         in
