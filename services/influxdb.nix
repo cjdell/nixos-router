@@ -1,12 +1,3 @@
-{
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
-
-
 let
   INFLUXDB_DATA_UID = 125;
 in

@@ -1,9 +1,11 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{ pkgs, ... }:
 
 let
-  meter-relay = (pkgs.writeShellScriptBin "meter-relay" ''
-    ${pkgs.nodejs}/bin/node node_modules/.bin/tsx src/index-control.ts
-  '');
+  meter-relay = (
+    pkgs.writeShellScriptBin "meter-relay" ''
+      ${pkgs.nodejs}/bin/node node_modules/.bin/tsx src/index-control.ts
+    ''
+  );
 in
 {
   systemd.services = {

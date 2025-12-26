@@ -13,6 +13,7 @@ Secrets missing and should be placed in `secrets` folder. Impure build required,
 - Zigbee2MQTT
 - Frigate NVR
 - AdGuard
+- NGINX Reverse Proxy with ACME Certification Manager (for various home lab services)
 - A few other miscellaneous things specific to my setup...
 
 ## Installing

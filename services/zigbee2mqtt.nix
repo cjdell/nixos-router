@@ -1,5 +1,3 @@
-{ config, lib, pkgs, modulesPath, ... }:
-
 let
   ZIGBEE2MQTT_UID = 8124;
 in

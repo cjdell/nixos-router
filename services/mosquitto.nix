@@ -1,5 +1,3 @@
-{ config, lib, pkgs, modulesPath, ... }:
-
 let
   MQTT_UID = 1883;
 in
