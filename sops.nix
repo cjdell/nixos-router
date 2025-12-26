@@ -20,6 +20,7 @@
       wireguard_key = { };
       home_assistant_header = { };
       nginx_sso_client_secret = { };
+      borg_backup_key = {};
     };
   };
 }
