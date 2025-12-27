@@ -2,7 +2,7 @@
 
 My NixOS router implementation.
 
-Secrets missing and should be placed in `secrets` folder. Impure build required, may migrate to `sops` someday.
+Secrets are managed with `sops-nix` and will need to be recreated for deployment on to other systems. This is my real router configuration however it can serve as a reference to anyone inspired to do the same.
 
 ## Services
 
@@ -24,18 +24,20 @@ Make sure `/mnt` and `/mnt/boot` are mounted and the correct device IDs are in `
 
 Comment out any services you don't need in `./services/default.nix`.
 
+Generate a new `./secrets/secrets.yaml`.
+
 Tweak your interface names and addresses in `./networking/interface.nix`.
 
 Install with:
 
 ```bash
-nixos-install --impure --root /mnt --flake .#NixOS-Router
+nixos-install --root /mnt --flake .#router
 ```
 
 ## Applying Changes
 
 ```bash
-sudo nixos-rebuild switch --flake .#NixOS-Router --impure
+sudo nixos-rebuild switch --flake .#router
 
 sudo nixos-confirm  # Mark this generation as good as we don't get rollbacked
 ```
@@ -46,14 +48,12 @@ Every time a new generation is deployed a timer starts that will automatically r
 
 This is to prevent you messing up a firewall rule that will lock you out accidentally.
 
-To make this generation the last known good configuration, use `sudo nixos-confirm`. See `./rollback.nix` for more information.
+To mark this generation as the last known good configuration, use `sudo nixos-confirm`. See [`nixos-utils`](https://github.com/cjdell/nixos-utils) for more information.
 
 ## Useful Tools
 
 ```bash
-$ sudo list-container-ips 
-Container Name: mqtt, Container ID: edeec653856e, IP Address: 10.88.1.1
-Container Name: zigbee2mqtt, Container ID: 5f6c197ae0e2, IP Address: 10.88.0.35
-Container Name: twofauth, Container ID: 298d44358c1b, IP Address: 10.88.0.37
-Container Name: frigate, Container ID: c4af23051376, IP Address: 10.88.0.36
+sudo list-containers    # List running containers along with their IP address
+
+list-generations        # See "good", "current" and "booted" generations
 ```
