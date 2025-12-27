@@ -9,11 +9,14 @@ Secrets are managed with `sops-nix` and will need to be recreated for deployment
 - Router / Firewall using `nftables`
 - Interface configuration with `networkd`
 - PPPoE for UK ISP (Zen Internet)
-- Home Assistant
-- Zigbee2MQTT
-- Frigate NVR
-- AdGuard
-- NGINX Reverse Proxy with ACME Certification Manager (for various home lab services)
+- Kanidm for Identity Management (IDM) and Single-Sign-On (SSO)
+- Declarative root-less containers with Podman
+  - Home Assistant
+  - Zigbee2MQTT
+  - Frigate NVR
+- Public facing Ghost blog
+- AdGuard (DNS blocker and secure proxy)
+- NGINX Reverse Proxy with ACME (automatic certificate renewal, used for SSL termination of internal home lab services)
 - A few other miscellaneous things specific to my setup...
 
 ## Installing
