@@ -1,3 +1,5 @@
+{ config, ... }:
+
 let
   GHOST_UID = 2368;
 in
@@ -15,7 +17,7 @@ in
       image = "docker.io/ghost:alpine";
       autoStart = true;
       ports = [
-        "2368:2368"
+        "${toString GHOST_UID}:2368"
       ];
       volumes = [
         "/srv/ghost:/var/lib/ghost/content"
@@ -31,6 +33,46 @@ in
         "--user=${toString GHOST_UID}:100"
       ];
     };
+  };
+
+  # journalctl -u plausible -f
+  services.plausible = {
+    enable = true;
+    server = {
+      port = GHOST_UID + 1;
+      baseUrl = "https://analytics.home.chrisdell.info";
+      # secretKeybaseFile is a path to the file which contains the secret generated
+      # with openssl as described above.
+      secretKeybaseFile = config.sops.secrets.plausible_secret_key.path;
+    };
+    database = {
+      postgres = {
+        setup = false;
+        dbname = "plausible";
+      };
+      clickhouse = {
+        setup = false;
+        url = "http://localhost:2370/default";
+      };
+    };
+  };
+
+  services.clickhouse = {
+    enable = true;
+    serverConfig = {
+      http_port = GHOST_UID + 1;
+      tcp_port = GHOST_UID + 2;
+    };
+  };
+
+  services.postgresql = {
+    ensureDatabases = [ "plausible" ];
+    ensureUsers = [
+      {
+        name = "plausible";
+        ensureDBOwnership = true;
+      }
+    ];
   };
 
   system.activationScripts.ghost = ''
@@ -49,6 +91,17 @@ in
 
       locations."/" = {
         proxyPass = "http://127.0.0.1:${toString GHOST_UID}";
+        recommendedProxySettings = true;
+        proxyWebsockets = true;
+      };
+    };
+
+    "analytics.home.chrisdell.info" = {
+      useACMEHost = "chrisdell.info";
+      forceSSL = true;
+
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString (GHOST_UID + 1)}";
         recommendedProxySettings = true;
         proxyWebsockets = true;
       };
