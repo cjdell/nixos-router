@@ -55,6 +55,18 @@ in
       RemainAfterExit = true;
     };
   };
+
+  services.postgresqlBackup = {
+    enable = true;
+    startAt = "*-*-* 01:30:00";
+    pgdumpOptions = "--no-owner";
+    location = "/srv/postgres";
+  };
+
+  system.activationScripts.postgresBackup = ''
+    mkdir -p /srv/postgres
+    chown -R postgres:postgres /srv/postgres
+  '';
 }
 
 ## Open a PSQL shell to the database

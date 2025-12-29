@@ -75,6 +75,8 @@ in
     ];
   };
 
+  services.postgresqlBackup.databases = [ "plausible" ];
+
   system.activationScripts.ghost = ''
     # Create config and storage directories
     mkdir -p /srv/ghost
