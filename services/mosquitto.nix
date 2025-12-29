@@ -1,40 +1,14 @@
-let
-  MQTT_UID = 1883;
-in
 {
-  users.users.mosquitto = {
-    uid = MQTT_UID;
-    group = "users";
-    isNormalUser = true;
+  services.mosquitto = {
+    enable = true;
+    listeners = [
+      {
+        address = "192.168.49.1";
+        port = 1883;
+        acl = [ "pattern readwrite #" ];
+        omitPasswordAuth = true;
+        settings.allow_anonymous = true;
+      }
+    ];
   };
-
-  virtualisation.oci-containers.containers = {
-    mqtt = {
-      hostname = "mqtt";
-      image = "docker.io/eclipse-mosquitto";
-      autoStart = true;
-      ports = [
-        "1883:1883"
-      ];
-      volumes = [
-        "/srv/mosquitto:/mosquitto"
-      ];
-      environment = {
-        TZ = "Europe/London";
-      };
-      extraOptions = [
-        "--ip=10.88.1.1"
-        "--user=${toString MQTT_UID}:100"
-      ];
-    };
-  };
-
-  system.activationScripts.mqtt = ''
-    # Create config directory
-    mkdir -p /srv/mosquitto
-
-    # Ensure correct permissions
-    chown -R ${toString MQTT_UID}:users /srv/mosquitto
-    chmod -R g+rw /srv/mosquitto
-  '';
 }
