@@ -29,11 +29,12 @@
     startCommand = lib.concatMapStringsSep "\n" (name: "systemctl start podman-${name}") containerNames;
   in {
     paths = "/srv";
+    exclude = [ "**/*.mp4" ];
     encryption.mode = "none";
     environment.BORG_RSH = "ssh -i ${config.sops.secrets.borg_backup_key.path}";
     repo = "ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv";
     compression = "auto,zstd";
-    startAt = "*-*-* 02:00:00";
+    startAt = "*-*-* 04:00:00";
     preHook = stopCommand;
     postHook = ''
       ${startCommand}

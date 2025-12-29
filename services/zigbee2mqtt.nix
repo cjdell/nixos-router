@@ -16,7 +16,7 @@ in
       image = "koenkk/zigbee2mqtt";
       autoStart = true;
       ports = [
-        "8124:8080"
+        "${toString ZIGBEE2MQTT_UID}:8080"
       ];
       volumes = [
         "/srv/zigbee2mqtt:/app/data"

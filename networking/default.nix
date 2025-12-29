@@ -1,12 +1,4 @@
 {
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
-
-{
   imports = [
     ./dns.nix
     ./firewall.nix

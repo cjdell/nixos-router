@@ -1,8 +1,5 @@
 {
-  config,
-  lib,
   pkgs,
-  modulesPath,
   ...
 }:
 
@@ -92,10 +89,4 @@
       ];
     };
   };
-
-  system.activationScripts.dnsmasq = ''
-    # Clear old leases...
-    # ${pkgs.coreutils-full}/bin/rm -f /var/lib/dnsmasq/dnsmasq.leases
-    # ${pkgs.systemd}/bin/systemctl restart dnsmasq
-  '';
 }

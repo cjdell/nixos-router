@@ -14,6 +14,7 @@ in
   };
 
   # sudo systemctl restart podman-homeassistant
+  # journalctl -u podman-homeassistant -f
   virtualisation.oci-containers.containers = {
     homeassistant = {
       hostname = "homeassistant";
@@ -21,7 +22,8 @@ in
       autoStart = true;
       volumes = [
         "/srv/homeassistant/config:/config"
-        # "/run/dbus:/run/dbus:ro"
+        "/etc/localtime:/etc/localtime:ro"
+        "/run/dbus:/run/dbus:ro"
       ];
       environment = {
         TZ = "Europe/London";
@@ -30,6 +32,7 @@ in
       };
       extraOptions = [
         "--network=host"
+        "--privileged"
       ];
     };
   };
@@ -43,7 +46,7 @@ in
     chmod -R g+rw /srv/homeassistant
   '';
 
-  # journalctl -u homeassistant-hacs-install -f
+  # journalctl -u homeassistant-hacs-install -b
   systemd.services.homeassistant-hacs-install =
     let
       homeassistant-hacs = (

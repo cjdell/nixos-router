@@ -10,6 +10,7 @@ in
 {
   systemd.services = {
     # sudo systemctl restart meter-relay
+    # journalctl -u meter-relay -f
     meter-relay = {
       serviceConfig = {
         Type = "simple";
