@@ -15,6 +15,7 @@
     ./meter-relay.nix
     ./mosquitto.nix
     ./postgres.nix
+    ./tailscale.nix
     ./wireguard.nix
     ./zigbee2mqtt.nix
   ];

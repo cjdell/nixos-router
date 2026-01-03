@@ -17,7 +17,7 @@
           type filter hook input priority filter; policy drop;
 
           # assuming we trust our LAN clients
-          iifname { "lo", "lan", "vlan10", "podman0", "wg0" } accept comment "trusted interfaces"
+          iifname { "lo", "lan", "vlan10", "podman0", "wg0", "tailscale0" } accept comment "trusted interfaces"
 
           # handle packets according to connection state
           ct state vmap {
@@ -90,6 +90,8 @@
 
         chain forward-allow {
           # Only NEW connections reach here - define initiation rules only!
+
+          iifname "tailscale0" log prefix "Tailscale to EVERYWHERE" accept
 
           # LAN can initiate to VLAN10
           iifname "lan" oifname "vlan10" log prefix "LAN TO VLAN10: " accept

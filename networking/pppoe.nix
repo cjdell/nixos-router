@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -62,6 +63,8 @@
     ${pkgs.iproute2}/bin/ip link set wan-fttp up
   '';
 
+  # sudo ethtool -k pppoe-zen
+
   # routing (pppoe)
   environment.etc.ppp-up = {
     # this script runs after PPP has established a connection
@@ -80,6 +83,10 @@
         ${pkgs.iproute2}/bin/ip -6 route add default dev pppoe-zen scope link metric 100
 
         ${pkgs.systemd}/bin/networkctl reconfigure pppoe-zen
+
+        # Tailscale asked for this:
+        # https://tailscale.com/kb/1320/performance-best-practices#ethtool-configuration
+        ${lib.getExe pkgs.ethtool} -K $IFNAME rx-udp-gro-forwarding on rx-gro-list off
       fi
     '';
   };
