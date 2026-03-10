@@ -51,6 +51,7 @@ in
         extraDomainNames = [
           "*.chrisdell.info"
           "*.home.chrisdell.info"
+          "*.rustagon.chrisdell.info"
         ];
       };
     };

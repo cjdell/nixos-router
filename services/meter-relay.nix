@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   meter-relay = (
@@ -8,19 +8,21 @@ let
   );
 in
 {
-  systemd.services = {
-    # sudo systemctl restart meter-relay
-    # journalctl -u meter-relay -f
-    meter-relay = {
-      serviceConfig = {
-        Type = "simple";
-        WorkingDirectory = "/home/cjdell/Projects/meter-relay";
-        ExecStart = "${meter-relay}/bin/meter-relay";
-        Restart = "always";
-        RestartSec = 5;
-      };
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+  # sudo systemctl restart meter-relay
+  # journalctl -u meter-relay -f
+  systemd.services.meter-relay = {
+    environment = {
+      LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
     };
+
+    serviceConfig = {
+      Type = "simple";
+      WorkingDirectory = "/home/cjdell/Projects/meter-relay";
+      ExecStart = "${lib.getExe meter-relay}";
+      Restart = "always";
+      RestartSec = 5;
+    };
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
   };
 }

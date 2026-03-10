@@ -56,7 +56,7 @@ in
 
   services.nginx.virtualHosts = {
     "frigate.home.chrisdell.info" = mkSSOVirtualHost {
-      proxyPass = "http://127.0.0.1:8971";
+      proxyPass = "http://127.0.0.1:${toString FRIGATE_UID}";
     };
   };
 }

@@ -16,6 +16,10 @@ in
       user_rules = [
         "192.168.49.1 router.home.chrisdell.info"
         "192.168.49.1 notify.home.chrisdell.info"
+
+        "@@||google-analytics.com^"
+        "@@||google.com^"
+        "@@||doubleclick.net^"
       ];
 
       dns = {

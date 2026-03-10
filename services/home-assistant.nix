@@ -88,6 +88,21 @@ in
         proxyPass = "http://127.0.0.1:8123";
         recommendedProxySettings = true;
         proxyWebsockets = true;
+
+        extraConfig = ''
+         	add_header 'Access-Control-Allow-Origin' * always;
+
+          if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Credentials' 'true';
+            add_header 'Access-Control-Allow-Methods' '*';
+            add_header 'Access-Control-Allow-Headers' '*';
+            add_header 'Access-Control-Max-Age' 86400;
+            add_header 'Content-Type' 'text/plain charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204; break;
+          }
+        '';
       };
 
       # Authentik support

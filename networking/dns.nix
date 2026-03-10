@@ -70,7 +70,7 @@
         "6c:4b:90:af:0c:f9,coffeelakelenovo-nixos     ,192.168.49.56,1h"
         "hp-elitedesk-ryzen-2400-nixos                ,192.168.49.57,1h"
         "lenovo-thinkcentre-core-11400-nixos          ,192.168.49.58,1h"
-        "dell-optiplex-core-4770-nixos                ,192.168.49.60,1h"
+        "3d-printer-server                            ,192.168.49.60,1h"
         "e4:54:e8:aa:d2:66,coffeelakedell-nixos       ,192.168.49.61,1h"
         "8c:ec:4b:53:8a:bf,dell-vostro-kabylake-nixos ,192.168.49.62,1h"
         "asus-xeon-1270v5-nixos,                      ,192.168.49.63,1h"

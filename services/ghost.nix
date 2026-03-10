@@ -2,6 +2,13 @@
 
 let
   GHOST_UID = 2368;
+
+  CHRISDELL_BLOG_PORT = 2360;
+  JACKSBALLARD_PORT = 2361;
+
+  PLAUSIBLE_PORT = 9001;
+  CLICKHOUSE_HTTP_PORT = 9002;
+  CLICKHOUSE_TCP_PORT = 9003;
 in
 {
   users.users.ghost = {
@@ -10,17 +17,17 @@ in
     isNormalUser = true;
   };
 
-  # journalctl -u podman-ghost -f
+  # journalctl -u podman-chrisdell -f
   virtualisation.oci-containers.containers = {
-    ghost = {
-      hostname = "ghost";
+    chrisdell = {
+      hostname = "chrisdell";
       image = "docker.io/ghost:alpine";
       autoStart = true;
       ports = [
-        "${toString GHOST_UID}:2368"
+        "${toString CHRISDELL_BLOG_PORT}:2368"
       ];
       volumes = [
-        "/srv/ghost:/var/lib/ghost/content"
+        "/srv/chrisdell.info:/var/lib/ghost/content"
       ];
       environment = {
         TZ = "Europe/London";
@@ -28,6 +35,35 @@ in
         database__client = "sqlite3";
         database__useNullAsDefault = "true";
         database__connection__filename = "/var/lib/ghost/content/data/ghost.db";
+        mail__from = "noreply@chrisdell.info";
+        security__staffDeviceVerification = "false";
+      };
+      extraOptions = [
+        "--user=${toString GHOST_UID}:100"
+      ];
+    };
+  };
+
+  # journalctl -u podman-jacksballard -f
+  virtualisation.oci-containers.containers = {
+    jacksballard = {
+      hostname = "jacksballard";
+      image = "docker.io/ghost:alpine";
+      autoStart = true;
+      ports = [
+        "${toString JACKSBALLARD_PORT}:2368"
+      ];
+      volumes = [
+        "/srv/jacksballard.com:/var/lib/ghost/content"
+      ];
+      environment = {
+        TZ = "Europe/London";
+        url = "https://jacksballard.home.chrisdell.info";
+        database__client = "sqlite3";
+        database__useNullAsDefault = "true";
+        database__connection__filename = "/var/lib/ghost/content/data/ghost.db";
+        mail__from = "noreply@jacksballard.com";
+        security__staffDeviceVerification = "false";
       };
       extraOptions = [
         "--user=${toString GHOST_UID}:100"
@@ -39,7 +75,7 @@ in
   services.plausible = {
     enable = true;
     server = {
-      port = GHOST_UID + 1;
+      port = PLAUSIBLE_PORT;
       baseUrl = "https://analytics.home.chrisdell.info";
       # secretKeybaseFile is a path to the file which contains the secret generated
       # with openssl as described above.
@@ -52,7 +88,7 @@ in
       };
       clickhouse = {
         setup = false;
-        url = "http://localhost:2370/default";
+        url = "http://localhost:${toString CLICKHOUSE_HTTP_PORT}/default";
       };
     };
   };
@@ -60,8 +96,8 @@ in
   services.clickhouse = {
     enable = true;
     serverConfig = {
-      http_port = GHOST_UID + 1;
-      tcp_port = GHOST_UID + 2;
+      http_port = CLICKHOUSE_HTTP_PORT;
+      tcp_port = CLICKHOUSE_TCP_PORT;
     };
   };
 
@@ -79,11 +115,15 @@ in
 
   system.activationScripts.ghost = ''
     # Create config and storage directories
-    mkdir -p /srv/ghost
+    mkdir -p /srv/chrisdell.info
+    mkdir -p /srv/jacksballard.com
 
     # Ensure correct permissions
-    chown -R ${toString GHOST_UID}:users /srv/ghost
-    chmod -R g+rw /srv/ghost
+    chown -R ${toString GHOST_UID}:users /srv/chrisdell.info
+    chown -R ${toString GHOST_UID}:users /srv/jacksballard.com
+
+    chmod -R g+rw /srv/chrisdell.info
+    chmod -R g+rw /srv/jacksballard.com
   '';
 
   services.nginx.virtualHosts = {
@@ -92,7 +132,18 @@ in
       forceSSL = true;
 
       locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString GHOST_UID}";
+        proxyPass = "http://127.0.0.1:${toString CHRISDELL_BLOG_PORT}";
+        recommendedProxySettings = true;
+        proxyWebsockets = true;
+      };
+    };
+
+    "jacksballard.home.chrisdell.info" = {
+      useACMEHost = "chrisdell.info";
+      forceSSL = true;
+
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString JACKSBALLARD_PORT}";
         recommendedProxySettings = true;
         proxyWebsockets = true;
       };
@@ -103,7 +154,7 @@ in
       forceSSL = true;
 
       locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString (GHOST_UID + 1)}";
+        proxyPass = "http://127.0.0.1:${toString PLAUSIBLE_PORT}";
         recommendedProxySettings = true;
         proxyWebsockets = true;
       };

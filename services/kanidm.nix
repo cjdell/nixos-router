@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  KANIDM_PORT = 8999;
+in
 {
   # Grant kanidm access to nginx group for ACME certificates
   users.users.kanidm.extraGroups = [ config.services.nginx.group ];
@@ -156,7 +159,7 @@
     };
 
     serverSettings = {
-      bindaddress = "127.0.0.1:${toString 8999}";
+      bindaddress = "127.0.0.1:${toString KANIDM_PORT}";
       ldapbindaddress = "0.0.0.0:${toString 8998}";
 
       tls_chain = "/var/lib/acme/chrisdell.info/fullchain.pem";
@@ -199,7 +202,7 @@
       forceSSL = true;
 
       locations."/" = {
-        proxyPass = "https://127.0.0.1:${toString 8999}";
+        proxyPass = "https://127.0.0.1:${toString KANIDM_PORT}";
         extraConfig = ''
           proxy_ssl_verify off;
           proxy_ssl_server_name on;

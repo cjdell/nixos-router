@@ -83,6 +83,7 @@
     parallel
     jq
     graphviz
+    ethtool
 
     # Development
     nixfmt-rfc-style
@@ -91,11 +92,14 @@
     nil
     deno
     git
+    node-gyp
 
     # Debug
     conntrack-tools
     tcpdump # tcpdump -i vlan10 -n host 192.168.10.138 and port 22
   ];
+
+  environment.sessionVariables.LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
 
   # List services that you want to enable:
 

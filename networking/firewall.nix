@@ -37,6 +37,8 @@
           ip saddr 10.47.0.0/16    tcp dport 22 accept comment "ssh from VPN"
           ip saddr 192.168.49.0/24 tcp dport 22 accept comment "ssh from LAN"
 
+          ip saddr 100.64.0.0/16   accept comment "Tailscale"
+
           tcp dport 80 accept comment "http from anywhere"
           tcp dport 443 accept comment "https from anywhere"
 
