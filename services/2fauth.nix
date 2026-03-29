@@ -1,4 +1,9 @@
 {
+  users.users.two2fauth = {
+    uid = 8900;
+    isNormalUser = true;
+  };
+
   virtualisation.oci-containers.containers = {
     twofauth = {
       hostname = "twofauth";
@@ -14,9 +19,17 @@
         TZ = "Europe/London";
         TRUSTED_PROXIES = "*";
         APP_URL = "https://2fauth.home.chrisdell.info";
+        APP_KEY = "SomeRandomStringOf32CharsExactly";
       };
+      extraOptions = [
+        # "--uidmap=1000:8900:1"
+        # "--gidmap=1000:100:1"
+      ];
     };
   };
+
+  # sudo podman run -ti --rm -v /srv/2fauth:/2fauth --uidmap=1000:8900:1 --gidmap=1000:100:1 --entrypoint=/bin/sh 2fauth/2fauth
+  # sudo podman run -ti --rm --uidmap=1000:8900:1 --gidmap=1000:100:1 --user=8900:100 --entrypoint=/bin/sh 2fauth/2fauth
 
   system.activationScripts.twofauth = ''
     # Create config directory

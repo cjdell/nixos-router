@@ -46,8 +46,11 @@
         "d4:35:1d:7b:b3:9f,Back-Vodafone              ,192.168.49.4,1h"
         "60:b5:8d:89:1c:5d,spare-fritzbox             ,192.168.49.5,1h"
 
+        "c0:7b:bc:13:01:46,cisco24poe                 ,192.168.49.10,1h"
+
+        "e4:11:5b:12:c2:ab,N40L-NAS                   ,192.168.49.21,1h"
         "00:e0:4d:02:cd:56,N100-NAS                   ,192.168.49.22,1h"
-        "3c:a8:2a:a0:1e:4c,GEN8-NAS                   ,192.168.49.21,1h"
+        "3c:a8:2a:a0:1e:4c,GEN8-NAS                   ,192.168.49.23,1h"
         "24:05:0f:6d:be:4e,experiments                ,192.168.49.25,1h"
 
         "b8:27:eb:0c:2e:3b,inverter-pi                ,192.168.49.30,1h"
@@ -84,6 +87,7 @@
         "d4:f5:47:2f:76:93,Small-Bedroom-Speaker      ,192.168.49.71,1h"
         "e4:f0:42:08:e3:1e,Front-Bedroom-Speaker      ,192.168.49.72,1h"
         "a4:77:33:4f:17:5e,Kitchen-Speaker            ,192.168.49.73,1h"
+        "54:2a:1b:92:3e:7e,Living-Room-Sonos          ,192.168.49.74,1h"
 
         "ec:71:db:d1:21:8a,HallwayCamera              ,192.168.49.81,1h"
       ];

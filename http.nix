@@ -76,7 +76,8 @@ in
   notifications.gateway = {
     enable = true;
     port = 8888;
-    notifyUrl = "http://192.168.49.1:8123/api/services/notify/mobile_app_hd1913";
+    # notifyUrl = "http://192.168.49.1:8123/api/services/notify/mobile_app_oneplus_7t_pro";
+    notifyUrl = "http://192.168.49.1:8123/api/services/notify/mobile_app_pixel_8_pro";
     payloadFormat = "home_assistant";
     headerFile = "${config.sops.secrets.home_assistant_header.path}";
   };

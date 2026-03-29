@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   ## List all backups
   # sudo list-backups-srv
   #
@@ -22,26 +23,30 @@
   ];
 
   # journalctl -u borgbackup-job-backup-srv -b
-  services.borgbackup.jobs.backup-srv = let
-    containers = config.virtualisation.oci-containers.containers;
-    containerNames = lib.attrNames containers;
-    stopCommand = lib.concatMapStringsSep "\n" (name: "systemctl stop podman-${name}") containerNames;
-    startCommand = lib.concatMapStringsSep "\n" (name: "systemctl start podman-${name}") containerNames;
-  in {
-    paths = "/srv";
-    exclude = [ "**/*.mp4" ];
-    encryption.mode = "none";
-    environment.BORG_RSH = "ssh -i ${config.sops.secrets.borg_backup_key.path}";
-    repo = "ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv";
-    compression = "auto,zstd";
-    startAt = "*-*-* 04:00:00";
-    preHook = stopCommand;
-    postHook = ''
-      ${startCommand}
-      sleep 120
-      if [ $exitStatus -eq 0 ]; then
-        ${pkgs.curl}/bin/curl -X POST -H 'Content-type: application/json' --data '{"title":"Backup","message":"Container volumes backup complete"}' https://notify.home.chrisdell.info
-      fi
-    '';
-  };
+  services.borgbackup.jobs.backup-srv =
+    let
+      containers = config.virtualisation.oci-containers.containers;
+      containerNames = lib.attrNames containers;
+      stopCommand = lib.concatMapStringsSep "\n" (name: "systemctl stop podman-${name}") containerNames;
+      startCommand = lib.concatMapStringsSep "\n" (name: "systemctl start podman-${name}") containerNames;
+    in
+    {
+      paths = "/srv";
+      exclude = [ "**/*.mp4" ];
+      encryption.mode = "none";
+      environment.BORG_RSH = "ssh -i ${config.sops.secrets.borg_backup_key.path}";
+      repo = "ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv";
+      compression = "auto,zstd";
+      startAt = "*-*-* 04:00:00";
+      # preHook = stopCommand;
+      postHook = ''
+        # ${startCommand}
+        sleep 120
+        if [ $exitStatus -eq 0 ]; then
+          ${lib.getExe pkgs.curl} -X POST -H 'Content-type: application/json' --data '{"title":"Backup","message":"Container volumes backup complete"}' https://notify.home.chrisdell.info
+        else
+          ${lib.getExe pkgs.curl} -X POST -H 'Content-type: application/json' --data '{"title":"Backup","message":"Container volumes backup failed"}' https://notify.home.chrisdell.info
+        fi
+      '';
+    };
 }
