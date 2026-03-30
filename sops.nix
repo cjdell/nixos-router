@@ -27,10 +27,10 @@
       headscale_api_key = {
         owner = "headscale";
       };
-      headscale_pre_authkey = {
+      headscale_pre_auth_key = {
         owner = "headscale";
       };
-      tailscale_pre_authkey = { };
+      tailscale_pre_auth_key = { };
       borg_backup_key = { };
     };
   };

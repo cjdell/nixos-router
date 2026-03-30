@@ -3,7 +3,7 @@
 {
   services.tailscale = {
     enable = true;
-    authKeyFile = config.sops.secrets.tailscale_pre_authkey.path;
+    authKeyFile = config.sops.secrets.tailscale_pre_auth_key.path;
     extraUpFlags = [
       "--login-server=https://tailscale.home.chrisdell.info"
       "--advertise-routes=192.168.49.0/24"

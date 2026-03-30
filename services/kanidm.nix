@@ -14,7 +14,7 @@ in
   # sudo kanidmd recover-account admin
   # sudo kanidmd recover-account idm_admin
   services.kanidm = {
-    enableServer = true;
+    server.enable = true;
     package = pkgs.kanidm_1_9;
 
     provision = {
@@ -178,7 +178,7 @@ in
       );
     };
 
-    serverSettings = {
+    server.settings = {
       bindaddress = "127.0.0.1:${toString KANIDM_PORT}";
       ldapbindaddress = "0.0.0.0:${toString 8998}";
 

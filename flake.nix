@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     nixos-utils = {
       url = "github:cjdell/nixos-utils";
@@ -27,7 +27,7 @@
       headplane,
     }@attrs:
     {
-      nixosConfigurations.router =
+      nixosConfigurations.grafton-router =
         let
           system = "x86_64-linux";
         in

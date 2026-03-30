@@ -93,7 +93,7 @@ in
         };
         integration.agent = {
           enabled = true;
-          pre_authkey_path = "${config.sops.secrets.headscale_pre_authkey.path}";
+          pre_authkey_path = "${config.sops.secrets.headscale_pre_auth_key.path}";
         };
         oidc = {
           issuer = "https://kanidm.home.chrisdell.info/oauth2/openid/headscale";
