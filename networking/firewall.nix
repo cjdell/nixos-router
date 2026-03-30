@@ -122,6 +122,10 @@
           iifname "wg0" oifname { "lan", "vlan10" } accept comment "VPN to LAN"
           iifname { "lan", "vlan10" } oifname "wg0" accept comment "LAN to VPN"
 
+          # VPN access
+          iifname "tailscale0" oifname { "lan", "vlan10" } accept comment "VPN to LAN"
+          iifname { "lan", "vlan10" } oifname "tailscale0" accept comment "LAN to VPN"
+
           # If nothing matched, drop (implicit with chain having no policy)
         }
 
@@ -148,6 +152,7 @@
           iifname "podman0" oifname "pppoe-zen" masquerade comment "Podman to FTTP"
 
           iifname "wg0" oifname { "lan", "vlan10" } masquerade comment "NAT VPN clients to LAN"
+          iifname "tailscale0" oifname { "lan", "vlan10" } masquerade comment "NAT VPN clients to LAN"
         }
 
         chain out {

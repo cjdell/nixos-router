@@ -42,7 +42,8 @@ in
           "https://cloudflare-dns.com/dns-query"
           # Requests for the local domain go to dnsmasq
           "[/grafton.lan/]127.0.0.1:8053"
-          "[/int.leighhack.org/]10.3.1.1:53"
+          # "[/int.leighhack.org/]10.3.1.1:53"
+          "[/grafton.tailscale/]100.100.100.100:53"
         ];
         local_ptr_upstreams = [
           # Reverse lookups for local IPs go to dnsmasq

@@ -11,6 +11,11 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    headplane = {
+      url = "github:tale/headplane/v0.6.2";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -19,6 +24,7 @@
       nixpkgs,
       nixos-utils,
       sops-nix,
+      headplane,
     }@attrs:
     {
       nixosConfigurations.router =
@@ -51,6 +57,14 @@
             # This fixes nixpkgs (for e.g. "nix shell") to match the system nixpkgs
             {
               nix.registry.nixpkgs.flake = nixpkgs;
+            }
+
+            # provides `services.headplane.*` NixOS options.
+            headplane.nixosModules.headplane
+
+            {
+              # provides `pkgs.headplane`
+              nixpkgs.overlays = [ headplane.overlays.default ];
             }
           ];
         };

@@ -41,8 +41,25 @@ in
         };
       };
       systems = {
-        # kanidm system oauth2 show-basic-secret home-assistant
+        # kanidm system oauth2 show-basic-secret headscale
         oauth2 = {
+          "headscale" = {
+            present = true;
+            public = false;
+            displayName = "Headscale";
+            originUrl = "https://tailscale.home.chrisdell.info/admin/oidc/callback";
+            originLanding = "https://tailscale.home.chrisdell.info/admin";
+            preferShortUsername = true;
+            scopeMaps = {
+              "admins" = [
+                "email"
+                "openid"
+                "profile"
+                "groups"
+              ];
+            };
+            allowInsecureClientDisablePkce = true;
+          };
           "home-assistant" = {
             present = true;
             public = false;

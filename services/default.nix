@@ -6,6 +6,7 @@
     # ./dex.nix
     ./frigate.nix
     ./ghost.nix
+    ./headscale.nix
     ./home-assistant.nix
     ./http-dump.nix
     ./immich.nix
@@ -17,7 +18,7 @@
     ./postgres.nix
     ./rustagon.nix
     ./tailscale.nix
-    ./wireguard.nix
+    # ./wireguard.nix
     ./zigbee2mqtt.nix
   ];
 }

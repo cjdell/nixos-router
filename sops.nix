@@ -21,6 +21,16 @@
       home_assistant_header = { };
       nginx_sso_client_secret = { };
       plausible_secret_key = { };
+      headscale_secret = {
+        owner = "headscale";
+      };
+      headscale_api_key = {
+        owner = "headscale";
+      };
+      headscale_pre_authkey = {
+        owner = "headscale";
+      };
+      tailscale_pre_authkey = { };
       borg_backup_key = { };
     };
   };
