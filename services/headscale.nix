@@ -59,7 +59,7 @@ in
         issuer = "https://kanidm.home.chrisdell.info/oauth2/openid/headscale";
         client_id = "headscale";
         client_secret_path = "${config.sops.secrets.headscale_secret.path}";
-        allowed_groups = [ "admins@kanidm.home.chrisdell.info" ];
+        # allowed_groups = [ "admins@kanidm.home.chrisdell.info" "admins" ]; # ???
       };
     };
   };

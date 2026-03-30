@@ -47,7 +47,10 @@ in
             present = true;
             public = false;
             displayName = "Headscale";
-            originUrl = "https://tailscale.home.chrisdell.info/admin/oidc/callback";
+            originUrl = [
+              "https://tailscale.home.chrisdell.info/oidc/callback"
+              "https://tailscale.home.chrisdell.info/admin/oidc/callback"
+            ];
             originLanding = "https://tailscale.home.chrisdell.info/admin";
             preferShortUsername = true;
             scopeMaps = {
