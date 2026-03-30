@@ -55,7 +55,7 @@ in
 
           ${pkgs.wget}/bin/wget -O /srv/homeassistant/hacs.zip https://github.com/hacs/integration/releases/latest/download/hacs.zip
           rm -rf /srv/homeassistant/config/custom_components/hacs
-          mkdir -d /srv/homeassistant/config/custom_components/hacs
+          mkdir -p /srv/homeassistant/config/custom_components/hacs
           ${pkgs.unzip}/bin/unzip /srv/homeassistant/hacs.zip -d /srv/homeassistant/config/custom_components/hacs
           rm /srv/homeassistant/hacs.zip
         ''

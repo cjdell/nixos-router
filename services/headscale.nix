@@ -29,20 +29,20 @@ in
         magic_dns = true;
         search_domains = [ "grafton.lan" ];
         nameservers = {
-          # global = [
-          #   "9.9.9.9"
-          #   "8.8.8.8"
-          #   "1.1.1.1"
-          # ];
+          global = [
+            "9.9.9.9"
+            "8.8.8.8"
+            "1.1.1.1"
+          ];
           split = {
-            "grafton.lan" = [ "10.3.1.1" ];
+            "grafton.lan" = [ "192.168.49.1" ];
           };
         };
       };
 
       ip_prefixes = [
-        "100.49.0.0/16"
-        "fd7a:0:49::/48"
+        "100.64.0.0/10"
+        "fd7a:115c:a1e0::/48"
       ];
 
       derp = {

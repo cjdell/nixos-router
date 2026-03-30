@@ -15,7 +15,7 @@ in
   # sudo kanidmd recover-account idm_admin
   services.kanidm = {
     enableServer = true;
-    package = pkgs.kanidm_1_8;
+    package = pkgs.kanidm_1_9;
 
     provision = {
       enable = true;
@@ -202,7 +202,7 @@ in
   # ldapwhoami -H ldaps://kanidm.home.chrisdell.info:8998 -x -D "cjdell@kanidm.home.chrisdell.info" -W
 
   environment.systemPackages = with pkgs; [
-    kanidm_1_8
+    kanidm_1_9
     openldap
   ];
 
