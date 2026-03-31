@@ -39,8 +39,10 @@
 
           ip saddr 100.64.0.0/16   accept comment "Tailscale"
 
-          tcp dport 80 accept comment "http from anywhere"
-          tcp dport 443 accept comment "https from anywhere"
+          tcp dport 80    accept comment "HTTP from anywhere"
+          tcp dport 443   accept comment "HTTPS from anywhere"
+          udp dport 3479  accept comment "STUN from anywhere"
+          udp dport 41641 accept comment "Tailscale from anywhere"
 
           # Rate limit ping (replace your existing icmp rule)
           icmp type echo-request limit rate 10/second accept comment "allow ping (rate limited)"
