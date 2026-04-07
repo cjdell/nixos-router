@@ -145,12 +145,12 @@
         chain post {
           type nat hook postrouting priority srcnat; policy accept;
 
-          iifname "lan"     oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
-          iifname "vlan10"  oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
-          iifname "podman0" oifname "pppoe-zen" masquerade comment "Podman to FTTP"
+          iifname "lan"         oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
+          iifname "vlan10"      oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
+          iifname "podman0"     oifname "pppoe-zen" masquerade comment "Podman to FTTP"
+          iifname "tailscale0"  oifname "pppoe-zen" masquerade comment "Tailscale to FTTP"
 
-          iifname "lan"        oifname "tailscale0" masquerade comment "NAT LAN clients to VPN"
-          iifname "tailscale0" oifname lan          masquerade comment "NAT VPN clients to LAN"
+          iifname "tailscale0"  oifname "lan"       masquerade comment "Tailscale to LAN"
         }
 
         chain out {
