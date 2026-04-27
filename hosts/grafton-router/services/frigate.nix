@@ -1,6 +1,6 @@
 let
   FRIGATE_UID = 8971;
-  mkSSOVirtualHost = import ../utils/nginx-sso-helper.nix;
+  mkSSOVirtualHost = import ../../../utils/nginx-sso-helper.nix;
 in
 {
   users.users.frigate = {

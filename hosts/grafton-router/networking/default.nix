@@ -21,8 +21,6 @@
   };
 
   networking = {
-    hostName = "grafton-router"; # Define your hostname.
-
     useDHCP = false;
     useNetworkd = true;
 

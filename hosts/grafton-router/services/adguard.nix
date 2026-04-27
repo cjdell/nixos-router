@@ -1,5 +1,5 @@
 let
-  mkSSOVirtualHost = import ../utils/nginx-sso-helper.nix;
+  mkSSOVirtualHost = import ../../../utils/nginx-sso-helper.nix;
 in
 {
   services.adguardhome = {

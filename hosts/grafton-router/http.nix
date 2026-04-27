@@ -5,11 +5,11 @@
   ...
 }:
 let
-  inherit (import ./utils/convert.nix { inherit lib; }) convertToEnvFile;
+  inherit (import ../../utils/convert.nix { inherit lib; }) convertToEnvFile;
 
-  nginxSsoConfig = import ./utils/nginx-sso-config.nix { inherit config lib; };
+  nginxSsoConfig = import ../../utils/nginx-sso-config.nix { inherit config lib; };
 
-  route53DynamicDnsService = import ./utils/r53-ddns.nix { inherit pkgs route53Creds; };
+  route53DynamicDnsService = import ../../utils/r53-ddns.nix { inherit pkgs route53Creds; };
 
   route53Creds = config.sops.templates."route-53-creds.env".path;
 

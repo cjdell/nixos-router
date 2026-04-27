@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  mkSSOVirtualHost = import ../utils/nginx-sso-helper.nix;
+  mkSSOVirtualHost = import ../../../utils/nginx-sso-helper.nix;
 in
 {
   # sudo journalctl -u http-dump -f

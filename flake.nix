@@ -22,51 +22,43 @@
     {
       self,
       nixpkgs,
-      nixos-utils,
-      sops-nix,
-      headplane,
-    }@attrs:
+      ...
+    }@inputs:
     {
-      nixosConfigurations.grafton-router =
+      nixosConfigurations =
         let
           system = "x86_64-linux";
+          hosts = builtins.filter (x: x != null) (
+            nixpkgs.lib.mapAttrsToList (name: value: if (value == "directory") then name else null) (
+              builtins.readDir ./hosts
+            )
+          );
         in
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          pkgs = import nixpkgs {
-            inherit system;
-            config = {
-              allowUnfree = true;
+        builtins.listToAttrs (
+          (map (host: {
+            name = host;
+            value = nixpkgs.lib.nixosSystem {
+              inherit system;
+              pkgs = import nixpkgs {
+                inherit system;
+                config = {
+                  allowUnfree = true;
+                };
+              };
+              modules = [
+                # This fixes nixpkgs (for e.g. "nix shell") to match the system nixpkgs
+                {
+                  nix.registry.nixpkgs.flake = nixpkgs;
+                  networking.hostName = host;
+                }
+              ]
+              ++ (import (./hosts + "/${host}") inputs);
+              specialArgs = {
+                inherit inputs;
+              };
             };
-          };
-          modules = [
-            nixos-utils.nixosModules.rollback
-            nixos-utils.nixosModules.containers
-            nixos-utils.nixosModules.notifications
-            sops-nix.nixosModules.sops
-
-            ./containers.nix
-            ./configuration.nix
-            ./hardware-configuration.nix
-            ./http.nix
-            ./sops.nix
-
-            ./networking
-            ./services
-
-            # This fixes nixpkgs (for e.g. "nix shell") to match the system nixpkgs
-            {
-              nix.registry.nixpkgs.flake = nixpkgs;
-            }
-
-            # provides `services.headplane.*` NixOS options.
-            headplane.nixosModules.headplane
-
-            {
-              # provides `pkgs.headplane`
-              nixpkgs.overlays = [ headplane.overlays.default ];
-            }
-          ];
-        };
+          }))
+            hosts
+        );
     };
 }
