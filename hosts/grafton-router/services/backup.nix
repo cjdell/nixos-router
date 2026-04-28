@@ -4,6 +4,9 @@
   pkgs,
   ...
 }:
+let
+  target = "ssh://backup@n40l-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv";
+in
 {
   ## List all backups
   # sudo list-backups-srv
@@ -13,12 +16,12 @@
   environment.systemPackages = [
     (pkgs.writeShellScriptBin "list-backups-srv" ''
       export BORG_RSH="ssh -i ${config.sops.secrets.borg_backup_key.path}"
-      borg list ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv
+      borg list ${target}
     '')
 
     (pkgs.writeShellScriptBin "restore-backup-srv" ''
       export BORG_RSH="ssh -i ${config.sops.secrets.borg_backup_key.path}"
-      borg extract --list ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv::$1 /srv
+      borg extract --list ${target}::$1 /srv
     '')
   ];
 
@@ -35,7 +38,7 @@
       exclude = [ "**/*.mp4" ];
       encryption.mode = "none";
       environment.BORG_RSH = "ssh -i ${config.sops.secrets.borg_backup_key.path}";
-      repo = "ssh://backup@gen8-nas.grafton.lan/sas-16tb/ds-external-backups/borg/router.home.chrisdell.info/srv";
+      repo = "${target}";
       compression = "auto,zstd";
       startAt = "*-*-* 04:00:00";
       # preHook = stopCommand;
