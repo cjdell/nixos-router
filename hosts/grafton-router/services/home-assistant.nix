@@ -13,6 +13,8 @@ in
     isNormalUser = true;
   };
 
+  hardware.bluetooth.enable = true;
+
   # sudo systemctl restart podman-homeassistant
   # journalctl -u podman-homeassistant -f
   virtualisation.oci-containers.containers = {
@@ -31,8 +33,37 @@ in
         PGID = "100";
       };
       extraOptions = [
-        "--network=host"
+        "--network"
+        "host"
         "--privileged"
+        "--cap-add"
+        "NET_ADMIN"
+        "--cap-add"
+        "NET_RAW"
+      ];
+    };
+
+    wyoming-speech-to-phrase = {
+      hostname = "wyoming-speech-to-phrase";
+      image = "rhasspy/wyoming-speech-to-phrase";
+      autoStart = true;
+      volumes = [
+        "/srv/wyoming-speech-to-phrase/models:/models"
+        "/srv/wyoming-speech-to-phrase/train:/train"
+      ];
+      ports = [
+        "10300:10300"
+      ];
+      extraOptions = [
+        "--privileged"
+        "--ip=10.88.0.101"
+      ];
+      cmd = [
+        "--hass-websocket-uri"
+        "http://hass.grafton.lan:8123/api/websocket"
+        "--hass-token"
+        "blahblahblahblah"
+        "--retrain-on-sta"
       ];
     };
   };
@@ -44,6 +75,12 @@ in
     # Ensure correct permissions
     chown -R ${toString HOME_ASSISTANT_UID}:users /srv/homeassistant
     chmod -R g+rw /srv/homeassistant
+
+    mkdir -p /srv/wyoming-speech-to-phrase/models
+    mkdir -p /srv/wyoming-speech-to-phrase/train
+
+    chown -R ${toString HOME_ASSISTANT_UID}:users /srv/wyoming-speech-to-phrase
+    chmod -R g+rw /srv/wyoming-speech-to-phrase
   '';
 
   # journalctl -u homeassistant-hacs-install -b
@@ -90,7 +127,7 @@ in
         proxyWebsockets = true;
 
         extraConfig = ''
-         	add_header 'Access-Control-Allow-Origin' * always;
+          add_header 'Access-Control-Allow-Origin' * always;
 
           if ($request_method = 'OPTIONS') {
             add_header 'Access-Control-Allow-Origin' '*';
