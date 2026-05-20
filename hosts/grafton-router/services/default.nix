@@ -11,6 +11,7 @@
     ./http-dump.nix
     ./immich.nix
     ./influxdb.nix
+    ./jack.nix
     ./jellyfin.nix
     ./kanidm.nix
     ./meter-relay.nix

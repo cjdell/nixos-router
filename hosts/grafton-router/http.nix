@@ -13,15 +13,22 @@ let
 
   route53Creds = config.sops.templates."route-53-creds.env".path;
 
-  route53ZoneConfig = {
+  cdRoute53ZoneConfig = {
     hostname = "home";
     domain = "chrisdell.info";
     zone = "Z02538421F5QYV4YUE5Q";
   };
+
+  jsbRoute53ZoneConfig = {
+    hostname = "server";
+    domain = "jacksballard.com";
+    zone = "Z06352112VJ8S75EICBMU";
+  };
 in
 {
   imports = [
-    (route53DynamicDnsService route53ZoneConfig)
+    (route53DynamicDnsService cdRoute53ZoneConfig)
+    (route53DynamicDnsService jsbRoute53ZoneConfig)
   ];
 
   sops.templates."route-53-creds.env".content = convertToEnvFile {
@@ -52,6 +59,14 @@ in
           "*.chrisdell.info"
           "*.home.chrisdell.info"
           "*.rustagon.chrisdell.info"
+        ];
+      };
+
+      "jacksballard.com" = {
+        environmentFile = route53Creds;
+        group = config.services.nginx.group; # Ensure nginx can access the certificates
+        extraDomainNames = [
+          "*.jacksballard.com"
         ];
       };
     };
