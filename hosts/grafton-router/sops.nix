@@ -19,6 +19,7 @@
       pppoe_password = { };
       wireguard_key = { };
       home_assistant_header = { };
+      home_assistant_token = { };
       nginx_sso_client_secret = { };
       plausible_secret_key = { };
       headscale_secret = {

@@ -41,5 +41,25 @@
                 },
             },
         }
-    }
+    },
+    "cSpell.words": [
+        "Authentik",
+        "chrisdell",
+        "coreutils",
+        "Creds",
+        "dbus",
+        "hacs",
+        "hass",
+        "homeassistant",
+        "jacksballard",
+        "journalctl",
+        "localtime",
+        "oneshot",
+        "PGID",
+        "pkgs",
+        "PUID",
+        "rhasspy",
+        "rustagon",
+        "virtualisation"
+    ]
 }

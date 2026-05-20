@@ -97,7 +97,7 @@ in
     headerFile = "${config.sops.secrets.home_assistant_header.path}";
   };
 
-  # NGINX is configured to use pre-existing certicates acquired by the ACME client
+  # NGINX is configured to use pre-existing certificates acquired by the ACME client
   services.nginx = {
     enable = true;
 

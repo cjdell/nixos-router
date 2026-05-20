@@ -6,6 +6,8 @@
 }:
 
 [
+  ../../utils/oci.nix
+
   nixos-utils.nixosModules.rollback
   nixos-utils.nixosModules.containers
   nixos-utils.nixosModules.notifications

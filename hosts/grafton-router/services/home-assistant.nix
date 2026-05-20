@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   ...
 }:
@@ -42,7 +43,9 @@ in
         "NET_RAW"
       ];
     };
+  };
 
+  virtualisation.oci-containers-unescaped.containers = {
     wyoming-speech-to-phrase = {
       hostname = "wyoming-speech-to-phrase";
       image = "rhasspy/wyoming-speech-to-phrase";
@@ -62,7 +65,7 @@ in
         "--hass-websocket-uri"
         "http://hass.grafton.lan:8123/api/websocket"
         "--hass-token"
-        "blahblahblahblah"
+        "$(cat ${config.sops.secrets.home_assistant_token.path})"
         "--retrain-on-sta"
       ];
     };
