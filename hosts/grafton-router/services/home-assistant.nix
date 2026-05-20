@@ -61,7 +61,7 @@ in
         "--privileged"
         "--ip=10.88.0.101"
       ];
-      cmd = [
+      cmdNoEscape = [
         "--hass-websocket-uri"
         "http://hass.grafton.lan:8123/api/websocket"
         "--hass-token"

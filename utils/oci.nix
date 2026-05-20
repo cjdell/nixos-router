@@ -1,5 +1,5 @@
 # Copied from https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/oci-containers.nix
-# No escaping of `container.cmd` so I can have secret paths in there
+# Added `container.cmdNoEscape` so I can have secret paths in there
 
 {
   config,
@@ -102,6 +102,13 @@ let
           default = [ ];
           description = "Commandline arguments to pass to the image's entrypoint.";
           example = [ "--port=9000" ];
+        };
+
+        cmdNoEscape = mkOption {
+          type = with types; listOf str;
+          default = [ ];
+          description = "Commandline arguments to pass to the image's entrypoint (without escape).";
+          example = [ "$(cat /secret/path)" ];
         };
 
         labels = mkOption {
@@ -501,7 +508,8 @@ let
         ++ [ "--pull ${escapeShellArg container.pull}" ]
         ++ map escapeShellArg container.extraOptions
         ++ [ container.image ]
-        ++ container.cmd
+        ++ map escapeShellArg container.cmd
+        ++ container.cmdNoEscape
       );
 
       preStop =
