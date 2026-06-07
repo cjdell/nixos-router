@@ -61,12 +61,14 @@ in
         "--privileged"
         "--ip=10.88.0.101"
       ];
-      cmdNoEscape = [
+      cmd = [
         "--hass-websocket-uri"
         "http://hass.grafton.lan:8123/api/websocket"
         "--hass-token"
-        "$(cat ${config.sops.secrets.home_assistant_token.path})"
         "--retrain-on-sta"
+      ];
+      cmdNoEscape = [
+        "$(cat ${config.sops.secrets.home_assistant_token.path})"
       ];
     };
   };
@@ -152,7 +154,7 @@ in
         '';
       };
 
-      # Authentik support
+      # SSO support
       locations."/auth/authorize" = {
         proxyPass = "http://127.0.0.1:8123";
         recommendedProxySettings = true;

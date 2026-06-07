@@ -6,6 +6,7 @@
 
 let
   KANIDM_PORT = 8999;
+  kanidm_pkg = pkgs.kanidm_1_10;
 in
 {
   # Grant kanidm access to nginx group for ACME certificates
@@ -15,7 +16,7 @@ in
   # sudo kanidmd recover-account idm_admin
   services.kanidm = {
     server.enable = true;
-    package = pkgs.kanidm_1_10;
+    package = kanidm_pkg;
 
     provision = {
       enable = true;
@@ -202,7 +203,7 @@ in
   # ldapwhoami -H ldaps://kanidm.home.chrisdell.info:8998 -x -D "cjdell@kanidm.home.chrisdell.info" -W
 
   environment.systemPackages = with pkgs; [
-    kanidm_1_9
+    kanidm_pkg
     openldap
   ];
 
