@@ -3,7 +3,6 @@
     ./2fauth.nix
     ./adguard.nix
     ./backup.nix
-    # ./dex.nix
     ./frigate.nix
     ./ghost.nix
     ./headscale.nix
@@ -19,7 +18,6 @@
     ./postgres.nix
     ./rustagon.nix
     ./tailscale.nix
-    # ./wireguard.nix
     ./zigbee2mqtt.nix
   ];
 }

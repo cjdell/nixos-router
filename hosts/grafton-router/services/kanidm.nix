@@ -15,7 +15,7 @@ in
   # sudo kanidmd recover-account idm_admin
   services.kanidm = {
     server.enable = true;
-    package = pkgs.kanidm_1_9;
+    package = pkgs.kanidm_1_10;
 
     provision = {
       enable = true;

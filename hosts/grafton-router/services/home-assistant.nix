@@ -71,6 +71,13 @@ in
     };
   };
 
+  systemd.services.podman-wyoming-speech-to-phrase = {
+    requires = [ "podman-homeassistant.service" ];
+    serviceConfig = {
+      ExecStartPre = "${pkgs.coreutils-full}/bin/sleep 60";
+    };
+  };
+
   system.activationScripts.homeassistant = ''
     # Create config directory
     mkdir -p /srv/homeassistant/config

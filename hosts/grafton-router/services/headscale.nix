@@ -8,9 +8,6 @@
   ...
 }:
 
-let
-  CONFIG = import ../config.nix;
-in
 {
   # Necessary for secret access
   users.groups.secrets.members = [ "headscale" ];

@@ -86,7 +86,7 @@
     ethtool
 
     # Development
-    nixfmt-rfc-style
+    nixfmt
     alejandra
     nixd
     nil
