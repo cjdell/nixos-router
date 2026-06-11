@@ -18,6 +18,7 @@
     ./postgres.nix
     ./rustagon.nix
     ./tailscale.nix
+    ./web-blocks.nix
     ./zigbee2mqtt.nix
   ];
 }

@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -16,9 +17,9 @@ in
 
   hardware.bluetooth.enable = true;
 
-  # sudo systemctl restart podman-homeassistant
-  # journalctl -u podman-homeassistant -f
   virtualisation.oci-containers.containers = {
+    # sudo systemctl restart podman-homeassistant
+    # journalctl -u podman-homeassistant -f
     homeassistant = {
       hostname = "homeassistant";
       image = "linuxserver/homeassistant";
@@ -43,8 +44,42 @@ in
         "NET_RAW"
       ];
     };
+
+    # journalctl -u podman-matter-server -f
+    matter-server = {
+      hostname = "matter-server";
+      image = "ghcr.io/home-assistant-libs/python-matter-server:stable";
+      autoStart = true;
+      volumes = [
+        "/srv/homeassistant/matter:/data"
+        "/run/dbus:/run/dbus:ro"
+      ];
+      environment = {
+        TZ = "Europe/London";
+        PUID = "${toString HOME_ASSISTANT_UID}";
+        PGID = "100";
+      };
+      extraOptions = [
+        "--network"
+        "host"
+        "--privileged"
+        "--cap-add"
+        "NET_ADMIN"
+        "--cap-add"
+        "NET_RAW"
+      ];
+      cmd = [
+        "--storage-path"
+        "/data"
+        "--paa-root-cert-dir"
+        "/data/credentials"
+        "--bluetooth-adapter"
+        "0"
+      ];
+    };
   };
 
+  # journalctl -u podman-wyoming-speech-to-phrase -f
   virtualisation.oci-containers-unescaped.containers = {
     wyoming-speech-to-phrase = {
       hostname = "wyoming-speech-to-phrase";
@@ -64,8 +99,8 @@ in
       cmd = [
         "--hass-websocket-uri"
         "http://hass.grafton.lan:8123/api/websocket"
-        "--hass-token"
         "--retrain-on-sta"
+        "--hass-token"
       ];
       cmdNoEscape = [
         "$(cat ${config.sops.secrets.home_assistant_token.path})"
@@ -73,27 +108,56 @@ in
     };
   };
 
-  systemd.services.podman-wyoming-speech-to-phrase = {
-    requires = [ "podman-homeassistant.service" ];
+  systemd.services.podman-wyoming-speech-to-phrase.requires = [ "wait-for-homeassistant.service" ];
+
+  # journalctl -u wait-for-homeassistant -f
+  systemd.services.wait-for-homeassistant = {
+    description = "Wait for Network";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
     serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils-full}/bin/sleep 60";
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe pkgs.curl} -sSf http://hass.grafton.lan:8123 >/dev/null 2>&1; do sleep 2; done; sleep 1'";
+      TimeoutStartSec = 300;
     };
   };
 
-  system.activationScripts.homeassistant = ''
-    # Create config directory
-    mkdir -p /srv/homeassistant/config
+  systemd.tmpfiles.settings = {
+    "10-homeassistant" = {
+      "/srv/homeassistant/config" = {
+        d = {
+          user = "homeassistant";
+          group = "users";
+          mode = "0775";
+        };
+      };
 
-    # Ensure correct permissions
-    chown -R ${toString HOME_ASSISTANT_UID}:users /srv/homeassistant
-    chmod -R g+rw /srv/homeassistant
+      "/srv/homeassistant/matter" = {
+        d = {
+          user = "homeassistant";
+          group = "users";
+          mode = "0775";
+        };
+      };
 
-    mkdir -p /srv/wyoming-speech-to-phrase/models
-    mkdir -p /srv/wyoming-speech-to-phrase/train
+      "/srv/wyoming-speech-to-phrase/models" = {
+        d = {
+          user = "homeassistant";
+          group = "users";
+          mode = "0775";
+        };
+      };
 
-    chown -R ${toString HOME_ASSISTANT_UID}:users /srv/wyoming-speech-to-phrase
-    chmod -R g+rw /srv/wyoming-speech-to-phrase
-  '';
+      "/srv/wyoming-speech-to-phrase/train" = {
+        d = {
+          user = "homeassistant";
+          group = "users";
+          mode = "0775";
+        };
+      };
+    };
+  };
 
   # journalctl -u homeassistant-hacs-install -b
   systemd.services.homeassistant-hacs-install =
@@ -102,20 +166,19 @@ in
         pkgs.writeShellScriptBin "homeassistant-hacs" ''
           ${pkgs.coreutils-full}/bin/sleep 5
 
-          ${pkgs.wget}/bin/wget -O /srv/homeassistant/hacs.zip https://github.com/hacs/integration/releases/latest/download/hacs.zip
+          ${lib.getExe pkgs.wget} -O /srv/homeassistant/hacs.zip https://github.com/hacs/integration/releases/latest/download/hacs.zip
           rm -rf /srv/homeassistant/config/custom_components/hacs
           mkdir -p /srv/homeassistant/config/custom_components/hacs
-          ${pkgs.unzip}/bin/unzip /srv/homeassistant/hacs.zip -d /srv/homeassistant/config/custom_components/hacs
+          ${lib.getExe pkgs.unzip} /srv/homeassistant/hacs.zip -d /srv/homeassistant/config/custom_components/hacs
           rm /srv/homeassistant/hacs.zip
         ''
       );
     in
     {
-      wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
 
       before = [ "podman-homeassistant.service" ];
-      wantedBy = [ "podman-homeassistant.service" ];
       requiredBy = [ "podman-homeassistant.service" ];
 
       serviceConfig = {
