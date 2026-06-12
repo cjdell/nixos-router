@@ -3,6 +3,9 @@
   ...
 }:
 
+let
+  constants = import ../constants.nix;
+in
 {
   environment.systemPackages = [ pkgs.dnsmasq ];
 
@@ -22,7 +25,7 @@
 
       addn-hosts = "${pkgs.writeText "service-hosts" ''
         192.168.49.1    router.grafton.lan
-        192.168.49.1    hass.grafton.lan
+        192.168.49.1    ${constants.HOME_ASSISTANT_HOSTNAME}
         192.168.49.1    mqtt.grafton.lan
       ''}";
 

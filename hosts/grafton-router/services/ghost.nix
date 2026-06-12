@@ -82,15 +82,18 @@ in
       secretKeybaseFile = config.sops.secrets.plausible_secret_key.path;
     };
     database = {
-      postgres = {
-        setup = false;
-        dbname = "plausible";
-      };
+      postgres.setup = true;
       clickhouse = {
         setup = false;
         url = "http://localhost:${toString CLICKHOUSE_HTTP_PORT}/default";
       };
     };
+  };
+
+  # Plausible needs Clickhouse, so wait for it
+  systemd.services.plausible = {
+    after = [ "clickhouse.service" ];
+    requires = [ "clickhouse.service" ];
   };
 
   services.clickhouse = {
@@ -99,16 +102,6 @@ in
       http_port = CLICKHOUSE_HTTP_PORT;
       tcp_port = CLICKHOUSE_TCP_PORT;
     };
-  };
-
-  services.postgresql = {
-    ensureDatabases = [ "plausible" ];
-    ensureUsers = [
-      {
-        name = "plausible";
-        ensureDBOwnership = true;
-      }
-    ];
   };
 
   services.postgresqlBackup.databases = [ "plausible" ];

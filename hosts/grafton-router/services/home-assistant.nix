@@ -6,6 +6,7 @@
 }:
 
 let
+  constants = import ../constants.nix;
   HOME_ASSISTANT_UID = 8123;
 in
 {
@@ -98,7 +99,7 @@ in
       ];
       cmd = [
         "--hass-websocket-uri"
-        "http://hass.grafton.lan:8123/api/websocket"
+        "http://${constants.HOME_ASSISTANT_HOSTNAME}:8123/api/websocket"
         "--retrain-on-sta"
         "--hass-token"
       ];
@@ -108,7 +109,10 @@ in
     };
   };
 
-  systemd.services.podman-wyoming-speech-to-phrase.requires = [ "wait-for-homeassistant.service" ];
+  systemd.services.podman-wyoming-speech-to-phrase = {
+    after = [ "wait-for-homeassistant.service" ];
+    requires = [ "wait-for-homeassistant.service" ];
+  };
 
   # journalctl -u wait-for-homeassistant -f
   systemd.services.wait-for-homeassistant = {
@@ -118,7 +122,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe pkgs.curl} -sSf http://hass.grafton.lan:8123 >/dev/null 2>&1; do sleep 2; done; sleep 1'";
+      ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe pkgs.curl} -sSf http://${constants.HOME_ASSISTANT_HOSTNAME}:8123 >/dev/null 2>&1; do sleep 2; done; sleep 1'";
       TimeoutStartSec = 300;
     };
   };
