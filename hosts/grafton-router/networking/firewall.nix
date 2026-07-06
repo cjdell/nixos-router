@@ -18,6 +18,7 @@
 
           # assuming we trust our LAN clients
           iifname { "lo", "lan", "vlan10", "podman0", "tailscale0" } accept comment "trusted interfaces"
+          ip saddr 192.168.100.0/24  accept comment "NixOS containers"
 
           # handle packets according to connection state
           ct state vmap {
@@ -67,14 +68,16 @@
           # MSS clamping rules
           tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1400 comment "Clamp TCP MSS to avoid MTU issues"
           tcp flags syn / fin,syn,rst,ack ip6 daddr != fe80::/10 tcp option maxseg size set 1400 comment "Clamp TCP MSS for IPv6"
-          # oifname "wg0" tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1360
-          # iifname "wg0" tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1360
 
           # No internet egress to RFC1918 IPs
           oifname "pppoe-zen" ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } reject with icmp type net-unreachable comment "outbound rfc1918 not permitted"
 
           # Add this rule temporarily at the TOP of your forward chain (before ct state vmap)
           iifname "vlan10" oifname "lan" log prefix "VLAN10->LAN debug: " level info
+
+          # Allow LAN → Tailscale container (for 10.3.0.0/16 traffic)
+          iifname "lan"         ip daddr 10.3.0.0/16 accept
+          iifname "tailscale0"  ip daddr 10.3.0.0/16 accept
 
           # Connection tracking dispatch
           ct state vmap {
@@ -96,6 +99,7 @@
           # Only NEW connections reach here - define initiation rules only!
 
           iifname "tailscale0" log prefix "Tailscale to EVERYWHERE" accept
+          ip saddr 192.168.100.0/24 accept comment "NixOS containers"
 
           # LAN can initiate to VLAN10
           iifname "lan" oifname "vlan10" log prefix "LAN TO VLAN10: " accept
@@ -145,12 +149,16 @@
         chain post {
           type nat hook postrouting priority srcnat; policy accept;
 
-          iifname "lan"         oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
-          iifname "vlan10"      oifname "pppoe-zen" masquerade comment "LAN NAT to FTTP"
-          iifname "podman0"     oifname "pppoe-zen" masquerade comment "Podman to FTTP"
-          iifname "tailscale0"  oifname "pppoe-zen" masquerade comment "Tailscale to FTTP"
+          iifname "lan"         oifname "pppoe-zen"     masquerade comment "LAN NAT to FTTP"
+          iifname "vlan10"      oifname "pppoe-zen"     masquerade comment "LAN NAT to FTTP"
+          iifname "podman0"     oifname "pppoe-zen"     masquerade comment "Podman to FTTP"
 
-          iifname "tailscale0"  oifname "lan"       masquerade comment "Tailscale to LAN"
+          iifname "tailscale0"  oifname "pppoe-zen"     masquerade comment "Tailscale to FTTP"
+          iifname "tailscale0"  oifname "lan"           masquerade comment "Tailscale to LAN"
+
+          iifname "lan"         ip daddr 100.64.0.0/16  masquerade comment "NAT for Grafton Tailnet traffic"
+          iifname "lan"         ip daddr 10.3.0.0/16    masquerade comment "NAT for Hackspace Tailnet traffic"
+          iifname "tailscale0"  ip daddr 10.3.0.0/16    masquerade comment "NAT for Hackspace Tailnet traffic"
         }
 
         chain out {

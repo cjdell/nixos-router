@@ -12,8 +12,8 @@ in
   # Grant kanidm access to nginx group for ACME certificates
   users.users.kanidm.extraGroups = [ config.services.nginx.group ];
 
-  # sudo kanidmd recover-account admin
   # sudo kanidmd recover-account idm_admin
+  # kanidm login
   services.kanidm = {
     server.enable = true;
     package = kanidm_pkg;

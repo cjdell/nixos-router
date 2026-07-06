@@ -2,6 +2,11 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
+    microvm = {
+      url = "github:microvm-nix/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-utils = {
       url = "github:cjdell/nixos-utils";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -17,6 +22,7 @@
     {
       self,
       nixpkgs,
+      microvm,
       ...
     }@inputs:
     {
@@ -46,6 +52,7 @@
                   nix.registry.nixpkgs.flake = nixpkgs;
                   networking.hostName = host;
                 }
+                microvm.nixosModules.host
               ]
               ++ (import (./hosts + "/${host}") inputs);
               specialArgs = {

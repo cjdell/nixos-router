@@ -1,5 +1,5 @@
-# Make sure hackspace LAN is advertised
-# sudo tailscale set --advertise-routes=2001:8b0:1d14::0/48,10.3.0.0/16
+# Make sure home LAN is advertised
+# sudo tailscale set --advertise-routes=192.168.49.0/24
 
 {
   pkgs,
@@ -33,6 +33,7 @@
           ];
           split = {
             "grafton.lan" = [ "192.168.49.1" ];
+            "int.leighhack.org" = [ "10.3.1.1" ];
           };
         };
       };

@@ -9,6 +9,11 @@ in
 {
   environment.systemPackages = [ pkgs.dnsmasq ];
 
+  # TFTP server: 192.168.49.50
+  # /etc/tftp/ipxe.efi
+  # /etc/tftp/undionly.kpxe
+  # http://zen3-nixos.grafton.lan/boot/netboot.ipxe
+
   # cat /var/lib/dnsmasq/dnsmasq.leases
   services.dnsmasq = {
     enable = true;
@@ -38,9 +43,25 @@ in
 
         "set:lan,2a02:8010:6680:49::,slaac,64"
       ];
+
       dhcp-option = [
         "tag:lan,option:dns-server,192.168.49.1"
         "tag:vlan10,option:dns-server,192.168.10.1"
+        # "tag:IsIPXE,option:bootfile-name,http://zen3-nixos.grafton.lan/boot/netboot.ipxe"
+      ];
+
+      dhcp-boot = [
+        "tag:IsBIOS,/etc/tftp/undionly.kpxe,192.168.49.50,192.168.49.50"
+        "tag:IsEFI,/etc/tftp/ipxe.efi,192.168.49.50,192.168.49.50"
+        "tag:IsIPXE,http://zen3-nixos.grafton.lan/boot/netboot.ipxe,10.3.14.32,10.3.14.32"
+      ];
+
+      dhcp-match = [
+        "set:IsBIOS,93,0"
+        "set:IsEFI,93,7"
+        "set:IsEFI,93,8"
+        "set:IsEFI,93,9"
+        "set:IsIPXE,77,iPXE"
       ];
 
       dhcp-host = [
@@ -50,6 +71,8 @@ in
         "60:b5:8d:89:1c:5d,spare-fritzbox             ,192.168.49.5,1h"
 
         "c0:7b:bc:13:01:46,cisco24poe                 ,192.168.49.10,1h"
+
+        "grafton-hackspace-client                     ,192.168.49.15,1h"
 
         "e4:11:5b:12:c2:ab,N40L-NAS                   ,192.168.49.21,1h"
         "00:e0:4d:02:cd:56,N100-NAS                   ,192.168.49.22,1h"
@@ -70,7 +93,7 @@ in
         "70:03:9f:68:b5:bd,plug-03                    ,192.168.49.43,1h"
         "c4:dd:57:21:12:28,plug-04                    ,192.168.49.44,1h"
 
-        "74:56:3c:6f:aa:16,zen3-nixos                 ,192.168.49.50,1h"
+        "74:56:3c:6f:aa:17,zen3-nixos                 ,192.168.49.50,1h"
         "e0:d5:5e:27:c9:65,zen1-nixos                 ,192.168.49.51,1h"
         "fc:aa:14:06:38:cc,haswellmatx-nixos          ,192.168.49.53,1h"
         "10:7b:44:1a:97:fc,haswellatx-nixos           ,192.168.49.54,1h"

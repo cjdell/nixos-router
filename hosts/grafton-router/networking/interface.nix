@@ -10,7 +10,7 @@
           MACAddress = "68:1d:ef:36:e9:94";
         };
         linkConfig = {
-          Name = "lan";
+          Name = "rawlan";
         };
       };
 
@@ -26,6 +26,15 @@
     };
 
     netdevs = {
+      # Bridge needed for QEMU quests
+      "99-lan" = {
+        netdevConfig = {
+          Kind = "bridge";
+          Name = "lan";
+          MACAddress = "68:1d:ef:36:e9:99";
+        };
+      };
+
       "110-vlan10" = {
         netdevConfig = {
           Kind = "vlan";
@@ -36,6 +45,18 @@
     };
 
     networks = {
+      "99-lan-bridge" = {
+        matchConfig.Name = [
+          "rawlan"
+          "vm-*"
+        ];
+        linkConfig.RequiredForOnline = "yes";
+        networkConfig = {
+          DHCP = false;
+        };
+        bridge = [ "lan" ];
+      };
+
       "100-lan" = {
         matchConfig.Name = "lan";
         linkConfig.RequiredForOnline = "yes";
