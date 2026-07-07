@@ -75,10 +75,6 @@
           # Add this rule temporarily at the TOP of your forward chain (before ct state vmap)
           iifname "vlan10" oifname "lan" log prefix "VLAN10->LAN debug: " level info
 
-          # Allow LAN → Tailscale container (for 10.3.0.0/16 traffic)
-          iifname "lan"         ip daddr 10.3.0.0/16 accept
-          iifname "tailscale0"  ip daddr 10.3.0.0/16 accept
-
           # Connection tracking dispatch
           ct state vmap {
             invalid     : drop,
@@ -102,7 +98,7 @@
           ip saddr 192.168.100.0/24 accept comment "NixOS containers"
 
           # LAN can initiate to VLAN10
-          iifname "lan" oifname "vlan10" log prefix "LAN TO VLAN10: " accept
+          iifname "lan"     oifname "vlan10" log prefix "LAN TO VLAN10: " accept
 
           # Internal networks outbound to internet
           iifname "lan"     oifname "pppoe-zen" accept comment "LAN out via ISP"
@@ -110,8 +106,8 @@
           iifname "podman0" oifname "pppoe-zen" accept comment "podman to internet"
 
           # Internal to podman
-          iifname "lan" oifname "podman0" accept comment "LAN to podman"
-          iifname "vlan10" oifname "podman0" accept comment "VLAN10 to podman"
+          iifname "lan"     oifname "podman0" accept comment "LAN to podman"
+          iifname "vlan10"  oifname "podman0" accept comment "VLAN10 to podman"
 
           # Podman to internal
           iifname "podman0" oifname "lan" accept comment "podman to LAN"

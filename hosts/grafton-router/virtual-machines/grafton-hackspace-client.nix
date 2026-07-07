@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  constants = import ../constants.nix;
+in
 {
   virtualisation.libvirtd = {
     enable = true;
@@ -23,7 +26,7 @@
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${lib.getExe pkgs.bash} -c 'sleep 30; ${pkgs.iproute2}/bin/ip route add 10.3.0.0/16 via 192.168.49.15'";
+      ExecStart = "${lib.getExe pkgs.bash} -c '${pkgs.iproute2}/bin/ip route show 10.3.0.0/16 via ${constants.GRAFTON_HACKSPACE_CLIENT_IP} | grep -q . || (for i in $(seq 1 30); do ${pkgs.iputils}/bin/ping -c1 -W1 ${constants.GRAFTON_HACKSPACE_CLIENT_IP} >/dev/null 2>&1 && break; sleep 1; done; ${pkgs.iproute2}/bin/ip route add 10.3.0.0/16 via ${constants.GRAFTON_HACKSPACE_CLIENT_IP})'";
     };
   };
 

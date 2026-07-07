@@ -1,3 +1,4 @@
 {
   HOME_ASSISTANT_HOSTNAME = "hass.grafton.lan";
+  GRAFTON_HACKSPACE_CLIENT_IP = "192.168.49.15";
 }

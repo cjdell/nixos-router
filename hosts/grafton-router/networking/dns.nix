@@ -72,7 +72,7 @@ in
 
         "c0:7b:bc:13:01:46,cisco24poe                 ,192.168.49.10,1h"
 
-        "grafton-hackspace-client                     ,192.168.49.15,1h"
+        "grafton-hackspace-client                     ,${constants.GRAFTON_HACKSPACE_CLIENT_IP},1h"
 
         "e4:11:5b:12:c2:ab,N40L-NAS                   ,192.168.49.21,1h"
         "00:e0:4d:02:cd:56,N100-NAS                   ,192.168.49.22,1h"
