@@ -41,7 +41,7 @@ in
         "set:lan,192.168.49.101,192.168.49.200,255.255.255.0,1h"
         "set:vlan10,192.168.10.101,192.168.10.200,255.255.255.0,1h"
 
-        "set:lan,2a02:8010:6680:49::,slaac,64"
+        "set:lan,2a02:8010:6680:49::,slaac,static,64"
       ];
 
       dhcp-option = [
@@ -74,7 +74,7 @@ in
 
         "grafton-hackspace-client                     ,${constants.GRAFTON_HACKSPACE_CLIENT_IP},1h"
 
-        "e4:11:5b:12:c2:ab,N40L-NAS                   ,192.168.49.21,1h"
+        "e4:11:5b:12:c2:ab,N40L-NAS                   ,192.168.49.21,[2a02:8010:6680:49::21],1h"
         "00:e0:4d:02:cd:56,N100-NAS                   ,192.168.49.22,1h"
         "3c:a8:2a:a0:1e:4c,GEN8-NAS                   ,192.168.49.23,1h"
         "24:05:0f:6d:be:4e,experiments                ,192.168.49.25,1h"
