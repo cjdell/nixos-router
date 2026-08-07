@@ -18,6 +18,7 @@
 
           # assuming we trust our LAN clients
           iifname { "lo", "lan", "vlan10", "podman0", "tailscale0" } accept comment "trusted interfaces"
+          ip6 saddr 2a0a:ef40:241::/48 accept comment "DBTHR33 trusted network"
           ip saddr 192.168.100.0/24  accept comment "NixOS containers"
 
           # handle packets according to connection state
@@ -115,6 +116,7 @@
 
           # IPv6 prefix routing
           ip6 saddr 2a02:8010:6680::/48 accept comment "Allow outbound from delegated IPv6 prefix"
+          ip6 saddr 2a0a:ef40:241::/48 accept comment "trusted network"
 
           # ICMP
           icmp type echo-request accept comment "allow ping"
