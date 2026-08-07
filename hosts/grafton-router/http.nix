@@ -59,6 +59,8 @@ in
           "*.chrisdell.info"
           "*.home.chrisdell.info"
           "*.rustagon.chrisdell.info"
+          "rustagon.com"
+          "*.rustagon.com"
         ];
       };
 

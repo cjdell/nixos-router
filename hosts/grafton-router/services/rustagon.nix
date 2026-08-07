@@ -17,6 +17,7 @@ in
 {
   services.nginx.virtualHosts = {
     "firmware.rustagon.chrisdell.info" = {
+      serverAliases = [ "rustagon.com" ];
       useACMEHost = "chrisdell.info";
       addSSL = true;
 
@@ -27,6 +28,7 @@ in
     };
 
     "apps.rustagon.chrisdell.info" = {
+      serverAliases = [ "apps.rustagon.com" ];
       useACMEHost = "chrisdell.info";
       addSSL = true;
 
@@ -37,6 +39,7 @@ in
     };
 
     "demo.rustagon.chrisdell.info" = {
+      serverAliases = [ "demo.rustagon.com" ];
       useACMEHost = "chrisdell.info";
       addSSL = true;
 

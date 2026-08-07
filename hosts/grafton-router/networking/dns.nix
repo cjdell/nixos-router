@@ -107,7 +107,7 @@ in
         "asus-xeon-1270v5-nixos,                      ,192.168.49.63,1h"
         "lenovo-thinkcentre-core-8400-c-nixos         ,192.168.49.64,1h"
         "hp-z240-xeon-1240v6-nixos                    ,192.168.49.65,1h"
-
+        "AirM5                                        ,192.168.49.66,1h"
         "f0:77:c3:9f:4e:12,rocketlakelatitude-nixos   ,192.168.49.67,1h"
         "7c:76:35:f8:e1:bb,precision-nixos            ,192.168.49.68,1h"
         "18:3e:ef:c6:1c:2f,MacBookAir                 ,192.168.49.69,1h"
@@ -118,6 +118,8 @@ in
         "54:2a:1b:92:3e:7e,Living-Room-Sonos          ,192.168.49.74,1h"
 
         "ec:71:db:d1:21:8a,HallwayCamera              ,192.168.49.81,1h"
+
+        "nixos-phone                                  ,192.168.49.91,1h"
       ];
     };
   };
