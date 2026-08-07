@@ -44,9 +44,25 @@
       ];
 
       derp = {
+        # Keep Tailscale's official DERP map (also the NixOS module default) so peers
+        # that can't hole-punch relay via a high-bandwidth Tailscale DC instead of the
+        # home uplink. Remove this only if you want zero relay traffic on Tailscale
+        # infra (privacy), accepting that all relays then cap at home upload.
+        urls = [ "https://controlplane.tailscale.com/derpmap/default" ];
+
         server = {
           enabled = true;
           stun_listen_addr = "0.0.0.0:3479"; # Unify uses default STUN port of 3478
+          # Defensive: keep the embedded region advertised even if a future
+          # headscale release changes the default.
+          automatically_add_embedded_derp_region = true;
+          verify_clients = true; # only tailnet members may use this relay (0.28 default)
+
+          # Dial hints only - clients primarily dial server_url host:port
+          # (tailscale.home.chrisdell.info:443 via nginx) and fall back to these IPs.
+          # They go stale whenever the PPPoE/DHCPv6 WAN address changes, so keep them
+          # in sync or delete them to rely on DNS alone. IPv6 is worth keeping accurate:
+          # v6-capable clients reach DERP without NAT, which is faster and more reliable.
           ipv4 = "51.148.168.145";
           ipv6 = "2a02:8011:d000:672:54a8:5046:eb20:7996";
         };
@@ -120,6 +136,12 @@
         # Redirect to the admin (the root URL is just 404 normally)
         extraConfig = ''
           rewrite ^/$ https://tailscale.home.chrisdell.info/admin permanent;
+
+          # DERP and the TS2021 control channel are long-lived WebSocket/Upgrade
+          # connections. recommendedProxySettings caps read/send timeout at 60s,
+          # which can drop idle ones; give them a generous window.
+          proxy_read_timeout 1h;
+          proxy_send_timeout 1h;
         '';
       };
       locations."/admin" = {
