@@ -94,6 +94,7 @@
     deno
     git
     node-gyp
+    nodejs
 
     # Debug
     conntrack-tools
