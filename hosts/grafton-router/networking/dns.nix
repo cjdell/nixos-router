@@ -5,6 +5,7 @@
 
 let
   constants = import ../constants.nix;
+  net = import ./constants.nix;
 in
 {
   environment.systemPackages = [ pkgs.dnsmasq ];
@@ -21,7 +22,7 @@ in
     settings = {
       # bind to 8053, we want adguard to provide DNS
       # and we'll let resolved own the loopback port 53
-      port = 8053;
+      port = net.DNSMASQ_PORT;
       no-resolv = true;
       bind-dynamic = true;
       dhcp-authoritative = true;
@@ -29,24 +30,24 @@ in
       enable-ra = true;
 
       addn-hosts = "${pkgs.writeText "service-hosts" ''
-        192.168.49.1    router.grafton.lan
-        192.168.49.1    ${constants.HOME_ASSISTANT_HOSTNAME}
-        192.168.49.1    mqtt.grafton.lan
+        ${net.LAN_IPV4}    router.grafton.lan
+        ${net.LAN_IPV4}    ${constants.HOME_ASSISTANT_HOSTNAME}
+        ${net.LAN_IPV4}    mqtt.grafton.lan
       ''}";
 
       domain = "grafton.lan";
       local = "/grafton.lan/";
 
       dhcp-range = [
-        "set:lan,192.168.49.101,192.168.49.200,255.255.255.0,1h"
-        "set:vlan10,192.168.10.101,192.168.10.200,255.255.255.0,1h"
+        "set:lan,${net.LAN_DHCP_V4_RANGE},255.255.255.0,${net.DHCP_LEASE_TIME}"
+        "set:vlan10,${net.VLAN10_DHCP_V4_RANGE},255.255.255.0,${net.DHCP_LEASE_TIME}"
 
-        "set:lan,2a02:8010:6680:49::,slaac,static,64"
+        "set:lan,${net.LAN_IPV6_PREFIX},slaac,static,64"
       ];
 
       dhcp-option = [
-        "tag:lan,option:dns-server,192.168.49.1"
-        "tag:vlan10,option:dns-server,192.168.10.1"
+        "tag:lan,option:dns-server,${net.LAN_IPV4}"
+        "tag:vlan10,option:dns-server,${net.VLAN10_IPV4}"
         # "tag:IsIPXE,option:bootfile-name,http://zen3-nixos.grafton.lan/boot/netboot.ipxe"
       ];
 

@@ -1,4 +1,5 @@
 let
+  net = import ../networking/constants.nix;
   mkSSOVirtualHost = import ../../../utils/nginx-sso-helper.nix;
 in
 {
@@ -14,8 +15,8 @@ in
 
       # Split DNS for internal network services. Allows things to still work without internet access.
       user_rules = [
-        "192.168.49.1 router.home.chrisdell.info"
-        "192.168.49.1 notify.home.chrisdell.info"
+        "${net.LAN_IPV4} router.home.chrisdell.info"
+        "${net.LAN_IPV4} notify.home.chrisdell.info"
 
         "@@||google-analytics.com^"
         "@@||google.com^"
@@ -24,12 +25,12 @@ in
 
       dns = {
         bind_hosts = [
-          "192.168.49.1"
-          "192.168.10.1"
-          "2a02:8010:6680:49::1"
+          net.LAN_IPV4
+          net.VLAN10_IPV4
+          net.LAN_IPV6_ADDRESS
         ];
 
-        port = 53;
+        port = net.DNS_PORT;
         # some optimisations I found necessary
         ratelimit = 0;
         cache_size = 67108864;

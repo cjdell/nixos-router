@@ -1,27 +1,74 @@
 {
+  lib,
+  ...
+}:
+
+let
+  c = import ./constants.nix;
+
+  # `{ "lan", "vlan10" }` — quoted nftables set of interface names
+  ifaceSet = names: "{ ${lib.concatMapStringsSep ", " (n: "\"${n}\"") names} }";
+
+  # Everything we trust implicitly on input (no further rules needed)
+  # Note: tailscale0 is deliberately NOT here — tailnet members get only the
+  # explicit service rules in input-allow, not blanket trust.
+  trustedIfaces = ifaceSet [
+    "lo"
+    c.LAN_INTERFACE
+    c.VLAN10_INTERFACE
+    c.PODMAN_INTERFACE
+  ];
+
+  # Internal bridges that may talk to each other (mDNS etc.)
+  internalIfaces = ifaceSet [
+    c.LAN_INTERFACE
+    c.VLAN10_INTERFACE
+    c.PODMAN_INTERFACE
+  ];
+
+  # LAN + VLAN10, i.e. everything except podman containers and the VPN
+  homeIfaces = ifaceSet [
+    c.LAN_INTERFACE
+    c.VLAN10_INTERFACE
+  ];
+in
+{
   networking.nftables.tables = {
     firewall = {
       family = "inet";
       content = ''
-        # Anti-spoofing
-        # This checks if a route exists back to the source address through any output interface. If yes, the packet is legitimate.
-        # The DHCPv4 exception exists because DHCP clients broadcast from 0.0.0.0 before they have an IP - these would fail the FIB (Forwarding Information Base) check but are legitimate, so they're explicitly allowed.
-        # This is a best practice for router security - it prevents your network from being used in spoofing attacks.
+        # ============================================================================
+        # FILTER TABLE (inet)
+        # ============================================================================
+
+        # ----------------------------------------------------------------------------
+        # rpfilter — anti-spoofing
+        # Checks a route exists back to the source through any output interface; if
+        # not, the packet is dropped. The DHCPv4 exception exists because DHCP clients
+        # broadcast from 0.0.0.0 before they have an IP — those fail the FIB check
+        # but are legitimate.
+        # ----------------------------------------------------------------------------
         chain rpfilter {
           type filter hook prerouting priority mangle + 10; policy drop;
-          meta nfproto ipv4 udp sport . udp dport { 68 . 67, 67 . 68 } accept comment "DHCPv4 client/server"
+          meta nfproto ipv4 udp sport . udp dport {
+            ${toString c.DHCPV4_CLIENT_PORT} . ${toString c.DHCPV4_SERVER_PORT},
+            ${toString c.DHCPV4_SERVER_PORT} . ${toString c.DHCPV4_CLIENT_PORT}
+          } accept comment "DHCPv4 client/server"
           fib saddr . mark oif exists accept
         }
 
+        # ----------------------------------------------------------------------------
+        # input — traffic to the router itself
+        # ----------------------------------------------------------------------------
         chain input {
           type filter hook input priority filter; policy drop;
 
-          # assuming we trust our LAN clients
-          iifname { "lo", "lan", "vlan10", "podman0", "tailscale0" } accept comment "trusted interfaces"
-          ip6 saddr 2a0a:ef40:241::/48 accept comment "DBTHR33 trusted network"
-          ip saddr 192.168.100.0/24  accept comment "NixOS containers"
+          # Trust our own networks / interfaces entirely
+          iifname ${trustedIfaces} accept comment "trusted interfaces"
+          ip6 saddr ${c.DBTHR33_SUBNET} accept comment "DBTHR33 trusted network"
+          ip saddr ${c.PODMAN_SUBNET} accept comment "NixOS containers"
 
-          # handle packets according to connection state
+          # Handle packets according to connection state
           ct state vmap {
             invalid     : drop,
             established : accept,
@@ -30,51 +77,59 @@
             untracked   : jump input-allow
           }
 
-          # if we make it here, block and log
+          # Reached here = blocked; log it (spots port scans / misconfigs)
           tcp flags syn / fin,syn,rst,ack log prefix "refused connection: " level info
         }
 
         chain input-allow {
-          # make your own choice on whether to allow SSH from outside
-          ip saddr 10.47.0.0/16    tcp dport 22 accept comment "ssh from VPN"
-          ip saddr 192.168.49.0/24 tcp dport 22 accept comment "ssh from LAN"
+          # --- SSH: private networks only -------------------------------------------
+          ip saddr ${c.WIREGUARD_SUBNET} tcp dport ${toString c.SSH_PORT} accept comment "ssh from WireGuard VPN"
+          ip saddr ${c.LAN_SUBNET}       tcp dport ${toString c.SSH_PORT} accept comment "ssh from LAN"
+          ip saddr ${c.TAILSCALE_SUBNET} tcp dport ${toString c.SSH_PORT} accept comment "ssh from Tailscale"
 
-          ip saddr 100.64.0.0/16   accept comment "Tailscale"
+          # --- Tailscale: explicit services only (no blanket trust) -----------------
+          # headscale's MagicDNS split sends grafton.lan queries to the router
+          ip saddr ${c.TAILSCALE_SUBNET} udp dport ${toString c.DNS_PORT} accept comment "DNS from Tailscale (MagicDNS split)"
+          ip saddr ${c.TAILSCALE_SUBNET} tcp dport ${toString c.DNS_PORT} accept comment "DNS from Tailscale (MagicDNS split)"
+          ip saddr ${c.TAILSCALE_SUBNET} tcp dport ${toString c.HOME_ASSISTANT_PORT} accept comment "Home Assistant from Tailscale"
 
-          tcp dport 80    accept comment "HTTP from anywhere"
-          tcp dport 443   accept comment "HTTPS from anywhere"
-          udp dport 3479  accept comment "STUN from anywhere"
-          udp dport 41641 accept comment "Tailscale from anywhere"
+          # --- Public services --------------------------------------------------------
+          tcp dport ${toString c.HTTP_PORT}       accept comment "HTTP from anywhere"
+          tcp dport ${toString c.HTTPS_PORT}      accept comment "HTTPS from anywhere"
+          udp dport ${toString c.STUN_PORT}       accept comment "STUN (headscale DERP)"
+          udp dport ${toString c.TAILSCALE_PORT}  accept comment "Tailscale from anywhere"
 
-          # Rate limit ping (replace your existing icmp rule)
+          # --- ICMP -------------------------------------------------------------------
           icmp type echo-request limit rate 10/second accept comment "allow ping (rate limited)"
+          icmpv6 type != { nd-redirect, 139 } accept comment "Accept all ICMPv6 except redirects and node info queries (type 139). See RFC 4890, section 4.4."
 
-          icmpv6 type != { nd-redirect, 139 } accept comment "Accept all ICMPv6 messages except redirects and node information queries (type 139). See RFC 4890, section 4.4."
-          ip6 daddr fe80::/64 udp dport 546 accept comment "DHCPv6 client"
-
-          # DHCPv6
-          udp dport dhcpv6-client udp sport dhcpv6-server counter accept comment "IPv6 DHCP"
+          # --- DHCPv6 — router is a DHCPv6 *client* on the WAN ------------------------
+          # Prefix delegation from the ISP (see pppoe.nix) arrives on UDP 546 (client
+          # port), sourced from the server port 547.
+          ip6 daddr fe80::/64 udp dport ${toString c.DHCPV6_CLIENT_PORT} accept comment "DHCPv6-PD from ISP (link-local)"
+          udp dport ${toString c.DHCPV6_CLIENT_PORT} udp sport ${toString c.DHCPV6_SERVER_PORT} counter accept comment "DHCPv6-PD from ISP (any daddr)"
         }
 
+        # ----------------------------------------------------------------------------
+        # forward — traffic routed through the router
+        # ----------------------------------------------------------------------------
         chain forward {
           type filter hook forward priority 0; policy drop;
 
-          # Anti-spoofing rules
+          # Anti-spoofing / broken-packet hygiene
           tcp flags & (fin|syn|rst|psh|ack|urg) == 0 drop comment "drop null packets"
           tcp flags & (fin|syn) == fin|syn drop comment "drop fin+syn"
           tcp flags & (syn|rst) == syn|rst drop comment "drop syn+rst"
 
-          iifname { "lan", "vlan10", "podman0" } udp dport 5353 accept comment "mdns from trusted networks"
+          # mDNS between internal networks
+          iifname ${internalIfaces} udp dport ${toString c.MDNS_PORT} accept comment "mdns from trusted networks"
 
-          # MSS clamping rules
+          # MSS clamping (avoids MTU issues over PPPoE)
           tcp flags syn / fin,syn,rst,ack tcp option maxseg size set 1400 comment "Clamp TCP MSS to avoid MTU issues"
           tcp flags syn / fin,syn,rst,ack ip6 daddr != fe80::/10 tcp option maxseg size set 1400 comment "Clamp TCP MSS for IPv6"
 
-          # No internet egress to RFC1918 IPs
-          oifname "pppoe-zen" ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } reject with icmp type net-unreachable comment "outbound rfc1918 not permitted"
-
-          # Add this rule temporarily at the TOP of your forward chain (before ct state vmap)
-          iifname "vlan10" oifname "lan" log prefix "VLAN10->LAN debug: " level info
+          # No internet egress to RFC1918 addresses
+          oifname ${c.WAN_INTERFACE} ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } reject with icmp type net-unreachable comment "outbound rfc1918 not permitted"
 
           # Connection tracking dispatch
           ct state vmap {
@@ -88,45 +143,44 @@
           # Connection rate limiting
           ct state new limit rate over 50/second burst 100 packets drop comment "rate limit new connections"
 
-          # Log anything that was blocked
+          # Reached here = blocked; log it
           tcp flags syn / fin,syn,rst,ack log prefix "refused forward: " level info
         }
 
         chain forward-allow {
-          # Only NEW connections reach here - define initiation rules only!
+          # Only NEW connections reach here — define initiation rules only.
 
-          iifname "tailscale0" log prefix "Tailscale to EVERYWHERE" accept
-          ip saddr 192.168.100.0/24 accept comment "NixOS containers"
+          # Tailscale exit node — tailnet clients route to the internet via us.
+          # Deliberately narrow: does NOT give tailnet access to podman containers.
+          iifname ${c.TAILSCALE_INTERFACE} oifname ${c.WAN_INTERFACE} accept comment "Tailscale exit node (internet)"
+
+          ip saddr ${c.PODMAN_SUBNET} accept comment "NixOS containers"
 
           # LAN can initiate to VLAN10
-          iifname "lan"     oifname "vlan10" log prefix "LAN TO VLAN10: " accept
+          iifname ${c.LAN_INTERFACE} oifname ${c.VLAN10_INTERFACE} accept comment "LAN to VLAN10"
 
           # Internal networks outbound to internet
-          iifname "lan"     oifname "pppoe-zen" accept comment "LAN out via ISP"
-          iifname "vlan10"  oifname "pppoe-zen" accept comment "VLAN10 out via ISP"
-          iifname "podman0" oifname "pppoe-zen" accept comment "podman to internet"
+          iifname ${c.LAN_INTERFACE}    oifname ${c.WAN_INTERFACE} accept comment "LAN out via ISP"
+          iifname ${c.VLAN10_INTERFACE} oifname ${c.WAN_INTERFACE} accept comment "VLAN10 out via ISP"
+          iifname ${c.PODMAN_INTERFACE} oifname ${c.WAN_INTERFACE} accept comment "podman to internet"
 
-          # Internal to podman
-          iifname "lan"     oifname "podman0" accept comment "LAN to podman"
-          iifname "vlan10"  oifname "podman0" accept comment "VLAN10 to podman"
+          # Internal <-> podman
+          iifname ${c.LAN_INTERFACE}    oifname ${c.PODMAN_INTERFACE} accept comment "LAN to podman"
+          iifname ${c.VLAN10_INTERFACE} oifname ${c.PODMAN_INTERFACE} accept comment "VLAN10 to podman"
+          iifname ${c.PODMAN_INTERFACE} oifname ${c.LAN_INTERFACE}    accept comment "podman to LAN"
+          iifname ${c.PODMAN_INTERFACE} oifname ${c.VLAN10_INTERFACE} accept comment "podman to VLAN10"
 
-          # Podman to internal
-          iifname "podman0" oifname "lan" accept comment "podman to LAN"
-          iifname "podman0" oifname "vlan10" accept comment "podman to VLAN10"
-
-          # IPv6 prefix routing
-          ip6 saddr 2a02:8010:6680::/48 accept comment "Allow outbound from delegated IPv6 prefix"
-          ip6 saddr 2a0a:ef40:241::/48 accept comment "trusted network"
+          # IPv6 — delegated prefix + trusted network
+          ip6 saddr ${c.DELEGATED_PREFIX} accept comment "outbound from delegated IPv6 prefix"
+          ip6 saddr ${c.DBTHR33_SUBNET}   accept comment "DBTHR33 trusted network"
 
           # ICMP
           icmp type echo-request accept comment "allow ping"
           icmpv6 type != { nd-redirect, 139 } accept comment "Accept ICMPv6 except redirects and queries"
 
-          # VPN access
-          iifname "tailscale0" oifname { "lan", "vlan10" } accept comment "VPN to LAN"
-          iifname { "lan", "vlan10" } oifname "tailscale0" accept comment "LAN to VPN"
-
-          # If nothing matched, drop (implicit with chain having no policy)
+          # VPN <-> home
+          iifname ${c.TAILSCALE_INTERFACE} oifname ${homeIfaces} accept comment "VPN to LAN"
+          iifname ${homeIfaces} oifname ${c.TAILSCALE_INTERFACE} accept comment "LAN to VPN"
         }
 
         chain output {
@@ -147,16 +201,20 @@
         chain post {
           type nat hook postrouting priority srcnat; policy accept;
 
-          iifname "lan"         oifname "pppoe-zen"     masquerade comment "LAN NAT to FTTP"
-          iifname "vlan10"      oifname "pppoe-zen"     masquerade comment "LAN NAT to FTTP"
-          iifname "podman0"     oifname "pppoe-zen"     masquerade comment "Podman to FTTP"
+          # Internal networks out via the ISP
+          iifname ${c.LAN_INTERFACE}    oifname ${c.WAN_INTERFACE} masquerade comment "LAN NAT to FTTP"
+          iifname ${c.VLAN10_INTERFACE} oifname ${c.WAN_INTERFACE} masquerade comment "VLAN10 NAT to FTTP"
+          iifname ${c.PODMAN_INTERFACE} oifname ${c.WAN_INTERFACE} masquerade comment "Podman to FTTP"
 
-          iifname "tailscale0"  oifname "pppoe-zen"     masquerade comment "Tailscale to FTTP"
-          iifname "tailscale0"  oifname "lan"           masquerade comment "Tailscale to LAN"
+          # Tailscale out
+          iifname ${c.TAILSCALE_INTERFACE} oifname ${c.WAN_INTERFACE} masquerade comment "Tailscale to FTTP"
+          iifname ${c.TAILSCALE_INTERFACE} oifname ${c.LAN_INTERFACE} masquerade comment "Tailscale to LAN"
 
-          iifname "lan"         ip daddr 100.64.0.0/16  masquerade comment "NAT for Grafton Tailnet traffic"
-          iifname "lan"         ip daddr 10.3.0.0/16    masquerade comment "NAT for Hackspace Tailnet traffic"
-          iifname "tailscale0"  ip daddr 10.3.0.0/16    masquerade comment "NAT for Hackspace Tailnet traffic"
+          # LAN traffic to remote tailnets (Grafton + Hackspace) — masquerade so
+          # replies come back via us instead of the remote network's routes
+          iifname ${c.LAN_INTERFACE}          ip daddr ${c.TAILSCALE_SUBNET} masquerade comment "NAT for Grafton Tailnet traffic"
+          iifname ${c.LAN_INTERFACE}          ip daddr ${c.HACKSPACE_SUBNET} masquerade comment "NAT for Hackspace Tailnet traffic"
+          iifname ${c.TAILSCALE_INTERFACE}    ip daddr ${c.HACKSPACE_SUBNET} masquerade comment "NAT for Hackspace Tailnet traffic"
         }
 
         chain out {

@@ -1,3 +1,6 @@
+let
+  net = import ./constants.nix;
+in
 {
   systemd.network = {
     enable = true;
@@ -30,7 +33,7 @@
       "99-lan" = {
         netdevConfig = {
           Kind = "bridge";
-          Name = "lan";
+          Name = net.LAN_INTERFACE;
           MACAddress = "68:1d:ef:36:e9:99";
         };
       };
@@ -38,7 +41,7 @@
       "110-vlan10" = {
         netdevConfig = {
           Kind = "vlan";
-          Name = "vlan10";
+          Name = net.VLAN10_INTERFACE;
         };
         vlanConfig.Id = 10;
       };
@@ -54,11 +57,11 @@
         networkConfig = {
           DHCP = false;
         };
-        bridge = [ "lan" ];
+        bridge = [ net.LAN_INTERFACE ];
       };
 
       "100-lan" = {
-        matchConfig.Name = "lan";
+        matchConfig.Name = net.LAN_INTERFACE;
         linkConfig.RequiredForOnline = "yes";
         networkConfig = {
           DHCP = false;
@@ -68,22 +71,22 @@
         ipv6SendRAConfig = {
           # RAs should include the router's IP for DNS
           EmitDNS = true;
-          DNS = "2a02:8010:6680:49::1";
+          DNS = net.LAN_IPV6_ADDRESS;
         };
         vlan = [
-          "vlan10"
+          net.VLAN10_INTERFACE
         ];
         address = [
-          "192.168.49.1/24"
-          "2a02:8010:6680:49::1/64"
+          "${net.LAN_IPV4}/24"
+          "${net.LAN_IPV6_ADDRESS}/64"
         ];
-        dns = [ "192.168.49.1" ];
+        dns = [ net.LAN_IPV4 ];
         domains = [ "grafton.lan" ];
       };
 
       # Experimental VLAN
       "110-vlan10" = {
-        matchConfig.Name = "vlan10";
+        matchConfig.Name = net.VLAN10_INTERFACE;
         linkConfig.RequiredForOnline = "carrier";
         networkConfig = {
           DHCP = false;
@@ -95,7 +98,7 @@
           SubnetId = "0x10";
         };
         address = [
-          "192.168.10.1/24"
+          "${net.VLAN10_IPV4}/24"
         ];
       };
 

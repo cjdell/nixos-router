@@ -1,3 +1,6 @@
+let
+  net = import ./constants.nix;
+in
 {
   imports = [
     ./dns.nix
@@ -16,8 +19,8 @@
 
     "net.ipv4.conf.all.arp_filter" = 1;
     "net.ipv4.conf.default.arp_filter" = 1;
-    "net.ipv6.conf.pppoe-zen.accept_ra" = 2;
-    "net.ipv6.conf.pppoe-zen.autoconf" = 1;
+    "net.ipv6.conf.${net.WAN_INTERFACE}.accept_ra" = 2;
+    "net.ipv6.conf.${net.WAN_INTERFACE}.autoconf" = 1;
   };
 
   networking = {
