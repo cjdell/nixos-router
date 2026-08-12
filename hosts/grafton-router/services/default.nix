@@ -2,6 +2,7 @@
   imports = [
     ./2fauth.nix
     ./adguard.nix
+    ./beszel.nix
     ./backup.nix
     ./frigate.nix
     ./ghost.nix
