@@ -52,6 +52,7 @@
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJ63Sro9L4zmSuYKQ654cWwBMq0KFFWxWGflAJbFEFJ me@chrisdell.info"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFKXFQsN5M23Yeh1jPYv/8Ys6wrH4VIluuJ5177ovXZW cjdell@alderlake-thinkpad"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRCJXVDcEMPZIDsymH52VEBVs19aUK6p7+bsifAq+FG cjdell@N100-NAS"
     ];
   };
 
