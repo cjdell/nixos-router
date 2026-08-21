@@ -164,6 +164,8 @@ Configured in `hosts/grafton-router/services/beszel.nix`. UI:
 Rust (axum) server-rendered web UI for managing the podman containers —
 status/ports/CPU/RAM, update one/many, restart, and **live logs over SSE**.
 Configured in `hosts/grafton-router/services/container-ui.nix`.
+Agent notes for the source repo (deployment loop, podman CLI gotchas):
+`/home/cjdell/Projects/nixos-utils/AGENTS.md`.
 
 - **Source lives in the `nixos-utils` repo** (`container-ui/`, built as
   `packages."x86_64-linux".container-ui` by that flake) — not in this repo.
