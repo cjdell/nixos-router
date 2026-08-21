@@ -8,7 +8,11 @@
     };
 
     nixos-utils = {
-      url = "github:cjdell/nixos-utils";
+      # TEMPORARY: use the local clone instead of the github source. A relative
+      # path (path:../Projects/nixos-utils) fails in pure evaluation mode, so an
+      # absolute path is used. Restore `url = "github:cjdell/nixos-utils";` and run
+      # `nix flake lock` to switch back to the hosted copy.
+      url = "path:/home/cjdell/Projects/nixos-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

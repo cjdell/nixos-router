@@ -6,7 +6,7 @@
 
 let
   KANIDM_PORT = 8999;
-  kanidm_pkg = pkgs.kanidm_1_10;
+  kanidm_pkg = pkgs.kanidm_1_10.withSecretProvisioning;
 in
 {
   # Grant kanidm access to nginx group for ACME certificates
@@ -169,6 +169,23 @@ in
               ];
             };
             allowInsecureClientDisablePkce = true;
+          };
+          "container-ui" = {
+            present = true;
+            public = false;
+            displayName = "Container UI";
+            originUrl = "https://containers.home.chrisdell.info/oidc/callback";
+            originLanding = "https://containers.home.chrisdell.info";
+            basicSecretFile = config.sops.secrets.container_ui_oidc_client_secret.path;
+            preferShortUsername = true;
+            scopeMaps = {
+              "admins" = [
+                "email"
+                "openid"
+                "profile"
+                "groups"
+              ];
+            };
           };
         };
       };

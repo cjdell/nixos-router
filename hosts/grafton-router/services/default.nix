@@ -4,6 +4,7 @@
     ./adguard.nix
     ./beszel.nix
     ./backup.nix
+    ./container-ui.nix
     ./frigate.nix
     ./ghost.nix
     ./headscale.nix

@@ -53,6 +53,23 @@ sudo nixos-confirm
   dirty git tree (uncommitted changes) is normal — the user deploys from the
   working tree.
 - Format Nix files with `nixfmt` (installed on the system).
+- **Path flake inputs are pinned by `narHash` in `flake.lock`.** Editing the
+  `nixos-utils` working tree is invisible to this flake's build until you run
+  `nix flake lock --update-input nixos-utils`. ⚠️ `flake.nix` currently points
+  `nixos-utils` at a **temporary** `path:/home/cjdell/Projects/nixos-utils`
+  input; once those changes are committed + pushed, restore it to
+  `github:cjdell/nixos-utils` and re-lock.
+- **`list-generations`: "booted ❌" right after a `switch` is normal** —
+  `/run/booted-system` only changes on reboot; the switched system is the
+  active one.
+- **`sudo` strips environment variables** — use `sudo env VAR=val cmd`.
+- **`curl -i` Location header lines end in CRLF.** Feeding a captured URL into
+  `curl` without stripping the `\r` fails with "Malformed input to a URL
+  function" — use `curl -w '%{redirect_url}'` instead.
+- No `python3`/`node`/`openssl`/`websocat` on PATH. Random hex:
+  `od -An -N32 -tx1 /dev/urandom | tr -d ' \n'`. Local Rust toolchain:
+  `nix shell nixpkgs#rustc nixpkgs#cargo nixpkgs#gcc` (there is no
+  `nixpkgs#cc` flake attr — use `nixpkgs#gcc`).
 
 ## Secrets (sops-nix)
 
@@ -104,6 +121,8 @@ or `ssh-keygen`/`ssh.ParsePrivateKey` rejects them.
 - **OCI containers**: rootful podman via `virtualisation.oci-containers`
   (see `containers.nix`; `dockerCompat` + `dockerSocket` are enabled, so
   `/run/docker.sock` → `/run/podman/podman.sock`, group `podman`).
+  Containers run as **root** via systemd units `podman-<name>.service` — a
+  user-level `podman ps` shows nothing; use `sudo podman`.
 - **Firewall**: `networking/nftables/firewall.nix` — default-drop `input` with
   trusted interfaces `lo`, LAN, VLAN10, podman0. Services bound to `127.0.0.1`
   work without firewall changes; anything on `0.0.0.0` needs a rule.
@@ -140,6 +159,88 @@ Configured in `hosts/grafton-router/services/beszel.nix`. UI:
   matches the header email against its user records, so user emails must equal
   Kanidm emails.
 
+## Container UI (containers.home.chrisdell.info)
+
+Rust (axum) server-rendered web UI for managing the podman containers —
+status/ports/CPU/RAM, update one/many, restart, and **live logs over SSE**.
+Configured in `hosts/grafton-router/services/container-ui.nix`.
+
+- **Source lives in the `nixos-utils` repo** (`container-ui/`, built as
+  `packages."x86_64-linux".container-ui` by that flake) — not in this repo.
+- Runs as **root** (shells out to `podman`/`systemctl`), binds
+  `127.0.0.1:8091`. The nginx vhost sets `proxy_buffering off` — required for
+  the SSE log tail; if live logs stall, check that first.
+- Does **its own Kanidm OIDC** (PKCE + id_token JWKS verification) — it is
+  *not* the `mkSSOVirtualHost` pattern. Client `container-ui`: non-public,
+  secret in sops `container_ui_oidc_client_secret`, `scopeMaps."admins"`.
+- **Login "Access Denied" = group membership, not client misconfig.** A
+  `scopeMaps` client grants only the union of the maps for the groups the
+  user is in — check `kanidm group list-members admins` first (see Kanidm
+  section below).
+- Sessions + PKCE state are **in-memory**: a service restart logs everyone out.
+- CSRF: per-session token in hidden form inputs; the container detail page has
+  **two** forms → two inputs (take the first when scripting).
+- axum gotcha: HTML responses must be wrapped in `axum::response::Html`
+  (helper `html_resp` in `handlers.rs`) — a bare `(status, String)` response is
+  served as `text/plain`, so browsers render raw source and inline JS never
+  runs.
+
+## Kanidm (IdM) — operations & troubleshooting
+
+Version 1.10.4. CLI: the `kanidm-with-secret-provisioning` package in the nix
+store; `KANIDM_URL=https://kanidm.home.chrisdell.info` and
+`KANIDM_NAME=idm_admin` are set system-wide.
+
+- `kanidm login` is **interactive**. To script the CLI, inject a fresh bearer
+  JWT into `~/.cache/kanidm_tokens` (JSON shape
+  `{"instances":{"":{"keys":{...},"tokens":{"<spn>":"<jwt>"}}}}`) — back
+  the file up first.
+- Server logs: `sudo journalctl -u kanidm` (extremely verbose — grep, e.g.
+  `kopid`). Config `/etc/kanidm/server.toml`, bind `127.0.0.1:8999`, database
+  in `/srv/kanidm` (bind path of `/var/lib/kanidm`).
+- **`scopeMaps` semantics**: a user's available scopes are the union of the
+  maps for the groups they belong to; with none, the login page shows
+  "Access Denied" (kanidm log shows `available_scopes: {}`). Don't remove
+  `scopeMaps` — it's the house pattern for every client.
+- **OAuth codes expire in ~1–2 minutes** ("Expired token exchange request") —
+  run the whole login → consent → exchange flow in one fast scripted pass.
+- Scriptable HTML login flow (what the UI uses): `POST /ui/login/begin` form
+  `{username}` → `POST /ui/login/pw` form `{password}` → 303 + `bearer` cookie
+  (JWT, ~1h). Then `GET /ui/oauth2?response_type=code&...` with the cookie →
+  consent page (hidden `consent_token` input) or a straight 303 to the callback
+  if consent was already granted. `POST /ui/oauth2/consent` form
+  `{consent_token}` → 303 to the callback. No CSRF header needed for these.
+- The API authorize route is `/oauth2/authorise` (British spelling, at the
+  root) and requires an `Authorization: Bearer` header — the `bearer` cookie
+  is not honoured there.
+- Reset an account's password non-interactively:
+  ```bash
+  sudo env KANIDM_RECOVER_ACCOUNT_PASSWORD="<new>" <kanidm-pkg>/bin/kanidmd scripting \
+    recover-account -c /etc/kanidm/server.toml <account> --from-environment
+  ```
+- ⚠️ **Never reset `cjdell`'s password for testing** — it locks the user out
+  of *every* SSO app. Test with `idm_admin` instead (add it to `admins`
+  temporarily if you need to exercise a `scopeMaps` client, then remove it
+  again — the Nix provision enforces `overwriteMembers=true`). Its password is
+  rotated and **not stored anywhere** — reset it with the command above when
+  you need it.
+
+## Verifying web UIs with a headless browser
+
+Works well for end-to-end checks of SSO + live features (e.g. SSE):
+
+```bash
+nix shell nixpkgs#chromium --command sh -c \
+  'chromium --headless=new --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-prof --no-sandbox about:blank' &
+# first run downloads ~500 MB from cache.nixos.org — wait up to ~90 s
+curl -X PUT 'http://127.0.0.1:9222/json/new?about:blank'    # → page ws URL
+nix shell nixpkgs#websocat --command websocat -t <ws-url>   # pipe CDP JSON lines
+```
+
+Drive it with CDP JSON: `Network.setCookie`, `Page.navigate`,
+`Runtime.evaluate` (`returnByValue: true`). Session cookies are HttpOnly, so
+set them with `Network.setCookie` (you can't read them from JS).
+
 ## Other useful facts
 
 - `README.md` covers architecture, install, and the auto-rollback workflow.
@@ -148,5 +249,7 @@ Configured in `hosts/grafton-router/services/beszel.nix`. UI:
 - `system.updateContainers` posts to the notifications gateway on port 8888
   (`notifications.gateway` in `http.nix`).
 - Network constants live in `hosts/grafton-router/networking/constants.nix`.
+- Loopback port map: kanidm bind `8999`, beszel hub `8090`, container-ui
+  `8091`, beszel agent `45876`, notifications gateway `8888`.
 - The repo also contains a microVM (hackspace client) and several
   `junk/` files that are **not** imported — don't assume they're active.

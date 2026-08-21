@@ -47,17 +47,14 @@
         ]
       },
       "locked": {
-        "lastModified": 1766771912,
-        "narHash": "sha256-YlBKkJ7jHWUIeSqfcI2dfgd4A29Qx+7EsNffWcEQMMo=",
-        "owner": "cjdell",
-        "repo": "nixos-utils",
-        "rev": "81e32bceeca5a75d0a2153f872072db2e7fddf8e",
-        "type": "github"
+        "lastModified": 1787266306,
+        "narHash": "sha256-jhhCACbwf3VylYbn+CzWm9KImI/ElYuI7xWX0rMhucI=",
+        "path": "/home/cjdell/Projects/nixos-utils",
+        "type": "path"
       },
       "original": {
-        "owner": "cjdell",
-        "repo": "nixos-utils",
-        "type": "github"
+        "path": "/home/cjdell/Projects/nixos-utils",
+        "type": "path"
       }
     },
     "nixpkgs": {
