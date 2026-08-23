@@ -55,6 +55,11 @@ in
         "tag:IsBIOS,/etc/tftp/undionly.kpxe,192.168.49.50,192.168.49.50"
         "tag:IsEFI,/etc/tftp/ipxe.efi,192.168.49.50,192.168.49.50"
         "tag:IsIPXE,http://zen3-nixos.grafton.lan/boot/netboot.ipxe,10.3.14.32,10.3.14.32"
+        # RPi 5 eeprom bootloader (tagged by its dhcp-host entry below). It
+        # also matches IsEFI (option 93=9) and would pick up ipxe.efi; this
+        # line makes the Pi self-contained: the eeprom only uses the
+        # next-server field (option 66) for TFTP and ignores the bootfile.
+        "tag:pi5,pi5,192.168.49.50"
       ];
 
       dhcp-match = [
@@ -121,6 +126,12 @@ in
         "ec:71:db:d1:21:8a,HallwayCamera              ,192.168.49.81,1h"
 
         "nixos-phone                                  ,192.168.49.91,1h"
+
+        # Raspberry Pi 5, network boots NixOS from zen3 (see pi5-progress.md).
+        # tag:pi5 selects the tag:pi5 dhcp-boot line above.
+        # Format: [hwaddr][,set:<tag>][,<ipaddr>][,<hostname>][,lease-time] —
+        # set:pi5 tags this host so the tag:pi5 dhcp-boot line above applies.
+        "set:pi5,98:fe:54:18:17:e9,192.168.49.92,pi5,1h"
       ];
     };
   };
