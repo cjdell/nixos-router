@@ -34,6 +34,7 @@
       tailscale_pre_auth_key = { };
       leigh_hackspace_tailscale_pre_auth_key = { };
       borg_backup_key = { };
+      frigate_whisper_db_password = { };
     };
   };
 }

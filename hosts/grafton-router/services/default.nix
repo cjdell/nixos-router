@@ -6,6 +6,7 @@
     ./backup.nix
     ./container-ui.nix
     ./frigate.nix
+    ./frigate-whisper.nix
     ./ghost.nix
     ./headscale.nix
     ./home-assistant.nix

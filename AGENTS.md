@@ -3,6 +3,17 @@
 Operational knowledge for working on this NixOS configuration. Read this before
 making changes, deploying, or diagnosing issues.
 
+> ## 🚨🚨🚨 MANDATORY: confirm every switch — do not skip this 🚨🚨🚨
+>
+> Every single time you run `nixos-rebuild switch` (or `boot`) on this host, **you
+> MUST run `sudo nixos-confirm` immediately afterwards** — even if the switch
+> printed errors, even if you think nothing changed, even if you only touched one
+> file. There is a 5-minute auto-rollback timer that will silently revert the
+> whole deployment if you forget. Make it the very next command after every
+> switch, before anything else (tests, checks, further edits). If a switch fails
+> part-way, re-run the whole switch and then confirm — never leave a generation
+> unconfirmed.
+
 ## ⚠️ CRITICAL: Automatic rollbacks
 
 `system.autoRollback.enable = true` is set on `grafton-router`. After **any**
@@ -10,7 +21,7 @@ making changes, deploying, or diagnosing issues.
 last known-good generation after **5 minutes** unless the new generation is
 confirmed.
 
-**Always run after deploying:**
+**ALWAYS run immediately after deploying — non-negotiable, no exceptions:**
 
 ```bash
 sudo nixos-confirm
@@ -66,7 +77,10 @@ sudo nixos-confirm
 - **`curl -i` Location header lines end in CRLF.** Feeding a captured URL into
   `curl` without stripping the `\r` fails with "Malformed input to a URL
   function" — use `curl -w '%{redirect_url}'` instead.
-- No `python3`/`node`/`openssl`/`websocat` on PATH. Random hex:
+- No `python3`/`node`/`openssl`/`websocat` on PATH — but **`python3` and
+  `openssl` are available via `nix shell`**, e.g.
+  `nix shell nixpkgs#python3 -c python3 script.py` or
+  `nix shell nixpkgs#openssl -c openssl version`. Random hex:
   `od -An -N32 -tx1 /dev/urandom | tr -d ' \n'`. Local Rust toolchain:
   `nix shell nixpkgs#rustc nixpkgs#cargo nixpkgs#gcc` (there is no
   `nixpkgs#cc` flake attr — use `nixpkgs#gcc`).
@@ -252,6 +266,7 @@ set them with `Network.setCookie` (you can't read them from JS).
   (`notifications.gateway` in `http.nix`).
 - Network constants live in `hosts/grafton-router/networking/constants.nix`.
 - Loopback port map: kanidm bind `8999`, beszel hub `8090`, container-ui
-  `8091`, beszel agent `45876`, notifications gateway `8888`.
+  `8091`, beszel agent `45876`, frigate-whisper web `8973`, notifications
+  gateway `8888`.
 - The repo also contains a microVM (hackspace client) and several
   `junk/` files that are **not** imported — don't assume they're active.

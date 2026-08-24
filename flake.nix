@@ -7,6 +7,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    frigate-whisper = {
+      # TEMPORARY: local path input (same as nixos-utils). A relative path
+      # (path:../Projects/frigate-whisper) fails in pure evaluation mode, so an
+      # absolute path is used. Restore `url = "github:cjdell/frigate-whisper";`
+      # and run `nix flake lock` to switch back to the hosted copy.
+      url = "path:/home/cjdell/Projects/frigate-whisper";
+    };
+
     nixos-utils = {
       # TEMPORARY: use the local clone instead of the github source. A relative
       # path (path:../Projects/nixos-utils) fails in pure evaluation mode, so an
