@@ -20,6 +20,7 @@
     ./mosquitto.nix
     ./postgres.nix
     ./rustagon.nix
+    ./rustcraft.nix
     ./tailscale.nix
     ./web-blocks.nix
     ./zigbee2mqtt.nix
