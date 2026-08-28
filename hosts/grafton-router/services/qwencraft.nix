@@ -106,7 +106,7 @@ in
     useACMEHost = "chrisdell.info";
     forceSSL = true;
     locations."/" = {
-      return301 = "https://qwencraft.home.chrisdell.info$request_uri";
+      return = "301 https://qwencraft.home.chrisdell.info$request_uri";
     };
   };
 }
