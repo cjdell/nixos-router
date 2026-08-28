@@ -19,8 +19,8 @@
     ./meter-relay.nix
     ./mosquitto.nix
     ./postgres.nix
+    ./qwencraft.nix
     ./rustagon.nix
-    ./rustcraft.nix
     ./tailscale.nix
     ./web-blocks.nix
     ./zigbee2mqtt.nix
