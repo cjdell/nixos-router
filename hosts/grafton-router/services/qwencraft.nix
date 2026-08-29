@@ -92,6 +92,17 @@ in
       root = "/srv/qwencraft";
 
       extraConfig = ''
+        # Never cache the game build: its wasm/js assets carry no
+        # versioned URLs, so a browser (or proxy) holding a pre-deploy
+        # copy would silently play an old client against the new server.
+        # The client detects the protocol skew and force-reloads with a
+        # cache-busting document URL, but the pkg/* sub-resources keep
+        # their URLs and would come straight back from a heuristic cache
+        # (nginx sends Last-Modified, no Cache-Control). no-store keeps
+        # the whole app fresh, same policy as the headless server's own
+        # responses.
+        add_header Cache-Control "no-store" always;
+
         # SPA-style fallback: extensionless paths (e.g. "/") resolve to the
         # app shell so navigating to a sub-path still loads the page.
         try_files $uri $uri/ /index.html;
