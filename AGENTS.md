@@ -201,6 +201,26 @@ Agent notes for the source repo (deployment loop, podman CLI gotchas):
   served as `text/plain`, so browsers render raw source and inline JS never
   runs.
 
+## Health dashboard (health.home.chrisdell.info)
+
+Realtime system health page: canvas charts for CPU (per-core), memory, load,
+temperature, per-interface network traffic, per-device disk IO and disk
+space, with time ranges 1m–24h and hover tooltips. Configured in
+`hosts/grafton-router/services/health.nix` (SSO vhost via `mkSSOVirtualHost`).
+Agent notes for the source repo: `/home/cjdell/Projects/nixos-utils/AGENTS.md`.
+
+- **Source lives in the `nixos-utils` repo** (`health/`): axum backend that
+  samples `/proc` + `statvfs` + hwmon every second, plus a dioxus 0.7 SPA
+  (wasm). Enabled here via `services.health.enable = true` (the `health`
+  nixos module) — this service file only adds the nginx vhost.
+- Binds `127.0.0.1:8092`; the SPA polls `/api/data` every second (no SSE).
+- **All history is in-memory** — a `systemctl restart health` resets the
+  graphs; data from before the restart is gone.
+- The loopback port map: health `8092` (after container-ui `8091`, beszel
+  hub `8090`).
+- Series names are an API contract (`cpu.core.N`, `net.<iface>.rx/.tx`, …)
+  — keep backend and SPA in sync if you rename any.
+
 ## Kanidm (IdM) — operations & troubleshooting
 
 Version 1.10.4. CLI: the `kanidm-with-secret-provisioning` package in the nix
@@ -266,7 +286,7 @@ set them with `Network.setCookie` (you can't read them from JS).
   (`notifications.gateway` in `http.nix`).
 - Network constants live in `hosts/grafton-router/networking/constants.nix`.
 - Loopback port map: kanidm bind `8999`, beszel hub `8090`, container-ui
-  `8091`, beszel agent `45876`, frigate-whisper web `8973`, notifications
-  gateway `8888`.
+  `8091`, health `8092`, beszel agent `45876`, frigate-whisper web `8973`,
+  notifications gateway `8888`.
 - The repo also contains a microVM (hackspace client) and several
   `junk/` files that are **not** imported — don't assume they're active.

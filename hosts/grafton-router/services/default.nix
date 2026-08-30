@@ -9,6 +9,7 @@
     ./frigate-whisper.nix
     ./ghost.nix
     ./headscale.nix
+    ./health.nix
     ./home-assistant.nix
     ./http-dump.nix
     ./immich.nix

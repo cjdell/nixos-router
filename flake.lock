@@ -78,8 +78,8 @@
         ]
       },
       "locked": {
-        "lastModified": 1787307351,
-        "narHash": "sha256-9j83t1051iLjkcWmaGs/kAZxBCMgxUxknnsOkkgXzxg=",
+        "lastModified": 1787932435,
+        "narHash": "sha256-pUr3WoB62NjZFk6LGgTnCqLbfKJGKYZx0Rls8Tu4M8c=",
         "path": "/home/cjdell/Projects/nixos-utils",
         "type": "path"
       },

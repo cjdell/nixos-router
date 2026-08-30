@@ -10,6 +10,7 @@
   nixos-utils.nixosModules.rollback
   nixos-utils.nixosModules.containers
   nixos-utils.nixosModules.notifications
+  nixos-utils.nixosModules.health
 
   sops-nix.nixosModules.sops
 
