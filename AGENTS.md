@@ -254,6 +254,21 @@ store; `KANIDM_URL=https://kanidm.home.chrisdell.info` and
   sudo env KANIDM_RECOVER_ACCOUNT_PASSWORD="<new>" <kanidm-pkg>/bin/kanidmd scripting \
     recover-account -c /etc/kanidm/server.toml <account> --from-environment
   ```
+- ⚠️ **The self-service reset UI lies.** `POST /ui/reset/add_password` returns
+  **200** but only *adds* a password credential — it does **not** replace the
+  account's active/primary credential. So after a "successful" UI reset the
+  new password still fails login with `Denied: incorrect password`. The robust
+  path is the `recover-account` scripting command above, which sets the
+  primary credential. Always verify with a `kanidm login` afterwards.
+- **Password quality policy is zxcvbn/passphrase-based** (server rejects weak
+  picks with `PasswordQuality([UseAFewWordsAvoidCommonPhrases, ...])`). Use a
+  multi-word passphrase.
+- **Provisioned users** (added to `provision.persons` in `kanidm.nix`) are
+  created with **no password** — set one via `recover-account`.
+- **Admin groups/users must be declared in the Nix provision**, not created via
+  CLI. `admins` has `overwriteMembers=true` and `autoRemove=true`, so a CLI-only
+  admin (or a person not in the provision) is silently reverted/removed on the
+  next `nixos-rebuild switch`. Users: `jack` (admin), `testuser`, `cjdell`.
 - ⚠️ **Never reset `cjdell`'s password for testing** — it locks the user out
   of *every* SSO app. Test with `idm_admin` instead (add it to `admins`
   temporarily if you need to exercise a `scopeMaps` client, then remove it

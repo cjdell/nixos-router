@@ -33,11 +33,20 @@ in
           legalName = "Test User";
           mailAddresses = [ "testuser@example.com" ];
         };
+        jack = {
+          present = true;
+          displayName = "Jack";
+          legalName = "Jack";
+          mailAddresses = [ "jack@chrisdell.info" ];
+        };
       };
       groups = {
         "admins" = {
           present = true;
-          members = [ "cjdell" ];
+          members = [
+            "cjdell"
+            "jack"
+          ];
           overwriteMembers = true;
         };
       };
