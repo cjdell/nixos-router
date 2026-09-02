@@ -4,6 +4,9 @@
 }:
 
 let
+  # Static site served by nginx; kept up to date by update-jsb.service
+  siteDir = "/home/cjdell/Projects/Portfolio-Website";
+
   doGitPull = pkgs.writeShellApplication {
     name = "do-git-pull";
     runtimeInputs = with pkgs; [
@@ -24,7 +27,7 @@ in
         forceSSL = true;
 
         locations."/" = {
-          root = "/srv/jacksballard.com-live";
+          root = siteDir;
         };
       };
 
@@ -43,6 +46,9 @@ in
     update-jsb = {
       timerConfig = {
         Unit = "update-jsb.service";
+        # OnBootSec is required: OnUnitActiveSec alone never fires if the
+        # service has never been active, leaving the timer permanently idle.
+        OnBootSec = "2min";
         OnUnitActiveSec = "1h";
       };
       wantedBy = [ "timers.target" ];
@@ -53,7 +59,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         User = "cjdell";
-        WorkingDirectory = "/srv/jacksballard.com-live";
+        WorkingDirectory = siteDir;
         ExecStart = "${doGitPull}/bin/do-git-pull";
       };
     };

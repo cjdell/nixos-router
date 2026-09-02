@@ -44,6 +44,9 @@
     uid = 1001;
     isNormalUser = true;
     description = "Chris Dell";
+    # World-traversable (but not readable) so the nginx worker (user 'nginx')
+    # can serve /home/cjdell/Projects/Portfolio-Website for jacksballard.com.
+    homeMode = "0755";
     extraGroups = [
       "networkmanager"
       "wheel"

@@ -74,6 +74,11 @@ in
     };
   };
 
+  # The nixpkgs nginx module sandboxes the service with ProtectHome=true,
+  # which masks /home. Relax to read-only so the workers can serve the static
+  # portfolio site from /home/cjdell/Projects/Portfolio-Website (jacksballard.com).
+  systemd.services.nginx.serviceConfig.ProtectHome = "read-only";
+
   # journalctl -u nginx-sso -f
   systemd.services.nginx-sso = {
     description = "NGINX SSO";
